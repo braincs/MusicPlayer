@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">MusicPlayer</string>
+    <string name="speeddown">slowdown</string>
+    <string name="speedup">speedup</string>
+    <string name="play">play</string>
+    <string name="next">next</string>
+</resources>

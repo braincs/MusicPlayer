@@ -11,6 +11,10 @@ import android.os.PowerManager;
 import android.util.Log;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Shuai
@@ -22,6 +26,9 @@ public class MusicPlayerService extends Service {
     private Context mContext;
     private AudioManager audioManager;
     private PlayerBinder mBinder = new PlayerBinder(this);
+    private List<String> musicList = new LinkedList<>();
+    private int currentIndex = 0;
+
 
     @Override
     public void onCreate() {
@@ -43,6 +50,8 @@ public class MusicPlayerService extends Service {
     }
 
     private void initPlayer() {
+        //only init once
+        Log.d(TAG, "--initPlayer--");
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
         audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
@@ -93,26 +102,76 @@ public class MusicPlayerService extends Service {
         @Override
         public void onCompletion(MediaPlayer mp) {
             Log.d(TAG, "--OnCompletionListener--");
+            currentIndex ++;
+            if (currentIndex >= musicList.size()){
+                currentIndex = 0;
+            }
+            playList();
         }
     };
 
     //endregion
 
 
-    public void play(String mp3Path) {
+    public int play(String mp3Path) {
         try {
+            // need to reset before setDataSource, otherwise IllegalStateException
             mediaPlayer.reset();
             mediaPlayer.setDataSource(mp3Path);
             mediaPlayer.prepare();
             mediaPlayer.start();
+            int duration = mediaPlayer.getDuration();
+            Log.d(TAG, "duration :" + duration);
+            return duration;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return -1;
+    }
+
+    private boolean updateDataSource(String path){
+        mediaPlayer.reset();
+        try {
+            mediaPlayer.setDataSource(path);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    private void startPlayer(){
+        try {
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+    }
+    public int getCurrentPosition(){
+        return mediaPlayer.getCurrentPosition();
     }
 
     public void pause() {
         mediaPlayer.pause();
     }
+
+    public void updateMusicList(List<String> list){
+        musicList = list;
+    }
+
+    private void playList(){
+        if (musicList == null) return;
+        if (!updateDataSource(musicList.get(currentIndex)))return;
+        startPlayer();
+    }
+    public void playList(List<String> list, int index){
+        musicList = list;
+        currentIndex = index;
+        if (!updateDataSource(musicList.get(currentIndex)))return;
+        startPlayer();
+    }
+
+
 
     class PlayerBinder extends Binder {
         private MusicPlayerService service;

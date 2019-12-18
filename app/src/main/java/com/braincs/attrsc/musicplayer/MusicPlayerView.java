@@ -7,6 +7,6 @@ package com.braincs.attrsc.musicplayer;
 public interface MusicPlayerView {
     void setProgress(int progress);
 
-    void setPlay();
-    void setStop();
+    void setMusicBtnPlay();
+    void setMusicBtnPause();
 }

@@ -6,19 +6,24 @@ package com.braincs.attrsc.musicplayer;
  */
 public class MusicPlayerPresenter {
     private MusicPlayerView mView;
-    private MusicPlayerService playerService;
+    private MusicPlayerService mService;
+    private MusicPlayerModel mModel;
 
-    public MusicPlayerPresenter(MusicPlayerView mView, MusicPlayerService playerService) {
+    public MusicPlayerPresenter(MusicPlayerView mView, MusicPlayerService mService, MusicPlayerModel model) {
         this.mView = mView;
-        this.playerService = playerService;
+        this.mService = mService;
+        this.mModel = model;
     }
 
     public void play(){
-//        playerService.play();
+//        mService.play();
+        mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
+        mView.setMusicBtnPause();
     }
 
     public void pause(){
-        playerService.pause();
+        mService.pause();
+        mView.setMusicBtnPlay();
     }
 
     public void seekTo(int pos){
@@ -26,11 +31,11 @@ public class MusicPlayerPresenter {
     }
 
     public void next(){
-
+        mService.playList(mModel.getMusicList(), mModel.next());
     }
 
     public void previous(){
-
+        mService.playList(mModel.getMusicList(), mModel.previous());
     }
 
     public void speedUp(){

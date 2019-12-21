@@ -6,8 +6,10 @@ package com.braincs.attrsc.musicplayer.utils;
  */
 public class TimeUtil {
     public static String int2TimeStr(int time){
-        String min = ""+ time / 60;
-        String sec = ""+ time % 60;
-        return min + ":"+ sec;
+        time = time / 1000;
+        int hour = time / 3600;
+        int min = time % 3600 / 60;
+        int sec = time % 3600  % 60;
+        return String.format("%02d : %02d : %02d", hour, min, sec);
     }
 }

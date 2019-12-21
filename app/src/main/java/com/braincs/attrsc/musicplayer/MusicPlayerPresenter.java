@@ -35,8 +35,9 @@ public class MusicPlayerPresenter {
         mService.pause();
     }
 
-    public void seekTo(int pos){
-
+    public void seekTo(int currentPosition){
+        mModel.setCurrentPosition(currentPosition);
+        mService.seek(currentPosition);
     }
 
     public void next(){
@@ -67,6 +68,8 @@ public class MusicPlayerPresenter {
                 mView.setMusicBtnPlay();
             }
 
+            mModel.setCurrentPosition(currentPosition);
+            mModel.setTotalDuration(totalDuration);
             mView.updateProgress(currentPosition, totalDuration);
         }
 

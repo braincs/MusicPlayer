@@ -19,6 +19,8 @@ public class MusicPlayerModel {
     private String directory;
     private List<String> musicList;
     private int currentIndex;
+    private int currentPosition;
+    private int totalDuration;
 
     public MusicPlayerModel(String directory) {
         this.directory = directory;
@@ -65,5 +67,21 @@ public class MusicPlayerModel {
 
     public void setState(int state) {
         this.state = state;
+    }
+
+    public int getCurrentPosition() {
+        return currentPosition;
+    }
+
+    public void setCurrentPosition(int currentPosition) {
+        this.currentPosition = currentPosition;
+    }
+
+    public int getTotalDuration() {
+        return totalDuration;
+    }
+
+    public void setTotalDuration(int totalDuration) {
+        this.totalDuration = totalDuration;
     }
 }

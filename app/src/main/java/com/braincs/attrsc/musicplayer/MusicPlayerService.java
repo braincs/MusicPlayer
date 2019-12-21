@@ -196,12 +196,12 @@ public class MusicPlayerService extends Service {
 
     public int getCurrentPosition() {
         if (!isPlaying)return 0;
-        return mediaPlayer.getCurrentPosition() /1000;
+        return mediaPlayer.getCurrentPosition();
     }
 
     public int getTotalDuration(){
         if (!isPlaying)return 0;
-        return mediaPlayer.getDuration() /1000;
+        return mediaPlayer.getDuration();
     }
 
     public void pause() {
@@ -232,6 +232,11 @@ public class MusicPlayerService extends Service {
 
     public void setStateListener(MServiceStateListener stateListener) {
         this.stateListener = stateListener;
+    }
+
+    public void seek(int pos) {
+        pos = Math.min(pos, mediaPlayer.getDuration());
+        mediaPlayer.seekTo(pos);
     }
 
     class PlayerBinder extends Binder {

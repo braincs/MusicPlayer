@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
@@ -34,7 +35,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private TextView tvTime;
     private TextView tvDuration;
     private TextView tvMusicName;
-    private ProgressBar pbMusic;
+    private SeekBar pbMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +75,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
         //progress bar
         pbMusic = findViewById(R.id.pb_music);
+        pbMusic.setOnSeekBarChangeListener(onSeekBarChangeListener);
     }
 
     private void startPlayer() {
@@ -122,6 +124,24 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         }
     }
 
+    private SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            Log.d(TAG, "seek to: " + seekBar.getProgress());
+            presenter.seekTo(seekBar.getProgress());
+        }
+    };
+
     private View.OnClickListener playerClickListener = new View.OnClickListener() {
 
         @Override
@@ -165,6 +185,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             public void run() {
                 pbMusic.setProgress(progress);
                 pbMusic.setMax(total);
+                pbMusic.refreshDrawableState();
                 tvTime.setText(TimeUtil.int2TimeStr(progress));
                 String dur = TimeUtil.int2TimeStr(total);
                 tvDuration.setText(dur);

@@ -76,7 +76,6 @@ public class MusicPlayerService extends Service {
         }
         if (null == mWorkerHandler) {
             mWorkerHandler = new Handler(mHandlerThread.getLooper());
-            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
         }
     }
 
@@ -208,6 +207,7 @@ public class MusicPlayerService extends Service {
         if (isPlaying){
             isPlaying = false;
             mediaPlayer.pause();
+            stopFreshUI();
         }
     }
 
@@ -227,6 +227,7 @@ public class MusicPlayerService extends Service {
         if (list.size() > 0 ) {
             if (!updateDataSource(musicList.get(currentIndex))) return;
             startPlayer();
+            startFreshUI();
         }
     }
 
@@ -251,6 +252,15 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    private void startFreshUI(){
+        if (mWorkerHandler != null)
+            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+    }
+
+    private void stopFreshUI(){
+        if (mWorkerHandler != null)
+            mWorkerHandler.removeCallbacksAndMessages(null);
+    }
     private Runnable UIFreshRunnable = new Runnable() {
         @Override
         public void run() {

@@ -20,7 +20,7 @@ public class MusicPlayerPresenter {
         this.mView = mView;
         this.mService = mService;
         this.mModel = model;
-
+        this.mService.setStateListener(mStateListener);
         freshUI();
     }
 
@@ -33,12 +33,12 @@ public class MusicPlayerPresenter {
     public void playpause(){
 //        mService.playpause();
         if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+            updateControlState(false);
             mService.pause();
-            this.mService.setStateListener(null);
-
         }else {
+            updateControlState(true);
             mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
-            this.mService.setStateListener(mStateListener);
+            mService.seek(mModel.getCurrentPosition());
         }
     }
 
@@ -67,18 +67,23 @@ public class MusicPlayerPresenter {
 
     }
 
+    private void updateControlState(boolean isPlaying){
+        if (isPlaying){
+            mModel.setState(MusicPlayerModel.STATE_PLAYING);
+            mView.setMusicBtnPause();
+        }else {
+            mModel.setState(MusicPlayerModel.STATE_PAUSE);
+            mView.setMusicBtnPlay();
+        }
+    }
+
     private MusicPlayerService.MServiceStateListener mStateListener = new MusicPlayerService.MServiceStateListener() {
         @Override
         public void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration) {
 //            Log.d(TAG, "isPlaying: " + isPlaying +", currentPosition: "+ currentPosition + ", totalDuration: "+totalDuration);
-            if (isPlaying){
-                mModel.setState(MusicPlayerModel.STATE_PLAYING);
-                mView.setMusicBtnPause();
-            }else {
-                mModel.setState(MusicPlayerModel.STATE_IDLE);
-                mView.setMusicBtnPlay();
-            }
+            updateControlState(isPlaying);
 
+            if (!isPlaying) return; //paused position and duration may 0
             mModel.setCurrentPosition(currentPosition);
             mModel.setTotalDuration(totalDuration);
             SpUtil.putObject(mView.getContext(), mModel);

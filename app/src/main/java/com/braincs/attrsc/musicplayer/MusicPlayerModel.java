@@ -15,9 +15,9 @@ import java.util.List;
  */
 public class MusicPlayerModel {
     public final static int STATE_IDLE = 0;
-    public final static int STATE_PLAYING = 1;
-    public final static int STATE_PAUSE = 2;
-    private int state;
+    public final static int STATE_PAUSE = 1;
+    public final static int STATE_PLAYING = 2;
+    private int state = STATE_IDLE;
     private String directory;
     private List<String> musicList;
     private int currentIndex;

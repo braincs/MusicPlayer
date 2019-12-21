@@ -1,8 +1,10 @@
 package com.braincs.attrsc.musicplayer;
 
 import android.os.Environment;
+import android.support.annotation.NonNull;
 
 import com.braincs.attrsc.musicplayer.utils.MediaUtil;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.List;
@@ -29,7 +31,9 @@ public class MusicPlayerModel {
     public List<String> getMusicList() {
 
         //todo async method implementation
-        musicList = MediaUtil.getAllMediaMp3Files(directory);
+        if (musicList == null || musicList.size() == 0 ) {
+            musicList = MediaUtil.getAllMediaMp3Files(directory);
+        }
         return musicList;
     }
 
@@ -45,6 +49,7 @@ public class MusicPlayerModel {
     public String currentMusic(){
         return musicList.get(currentIndex);
     }
+
     public int next(){
         currentIndex ++;
         if (currentIndex >= musicList.size()){
@@ -83,5 +88,11 @@ public class MusicPlayerModel {
 
     public void setTotalDuration(int totalDuration) {
         this.totalDuration = totalDuration;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return new Gson().toJson(this);
     }
 }

@@ -3,6 +3,7 @@ package com.braincs.attrsc.musicplayer;
 import android.Manifest;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -13,10 +14,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
 public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerView{
     private final static String TAG = MusicPlayerActivity.class.getSimpleName();
 
+    private Context context;
     private Intent intent;
     private MusicPlayerService mPlayer;
     private boolean isBound = false;
@@ -41,16 +43,27 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        context = this.getApplicationContext();
         intent = new Intent(this, MusicPlayerService.class);
 
         getPermissions();
-        startPlayer();
+        startService();
+
         initView();
 //        mp3Files = MediaUtil.getAllMediaMp3Files();
 //        Log.d(TAG, Arrays.toString(mp3Files.toArray()));
 //        currentPos = 0;
 
-        model = new MusicPlayerModel("Music");
+        initModel();
+    }
+
+    private void initModel() {
+        model = SpUtil.getObject(context, MusicPlayerModel.class);
+        if (model == null){
+            model = new MusicPlayerModel("Music");
+            SpUtil.putObject(context, model);
+        }
+        Log.d(TAG, model.toString());
     }
 
 
@@ -78,7 +91,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         pbMusic.setOnSeekBarChangeListener(onSeekBarChangeListener);
     }
 
-    private void startPlayer() {
+    private void startService() {
         bindService(intent, mConnection, Service.BIND_AUTO_CREATE);
     }
 
@@ -179,12 +192,18 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     };
 
     @Override
+    public Context getContext() {
+        return context;
+    }
+
+    @Override
     public void updateProgress(final int progress, final int total) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                pbMusic.setProgress(progress);
+                pbMusic.setProgress(0); // call these two methods before setting progress.
                 pbMusic.setMax(total);
+                pbMusic.setProgress(progress);
                 pbMusic.refreshDrawableState();
                 tvTime.setText(TimeUtil.int2TimeStr(progress));
                 String dur = TimeUtil.int2TimeStr(total);

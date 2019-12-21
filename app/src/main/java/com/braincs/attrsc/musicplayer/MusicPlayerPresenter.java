@@ -2,6 +2,8 @@ package com.braincs.attrsc.musicplayer;
 
 import android.util.Log;
 
+import com.braincs.attrsc.musicplayer.utils.SpUtil;
+
 import java.io.File;
 
 /**
@@ -19,15 +21,24 @@ public class MusicPlayerPresenter {
         this.mService = mService;
         this.mModel = model;
 
-        this.mService.setStateListener(mStateListener);
+        freshUI();
+    }
+
+    private void freshUI() {
+        mView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
+        mView.setMusicBtnPlay();
+        mView.updateProgress(mModel.getCurrentPosition(), mModel.getTotalDuration());
     }
 
     public void playpause(){
 //        mService.playpause();
         if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
             mService.pause();
+            this.mService.setStateListener(null);
+
         }else {
             mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
+            this.mService.setStateListener(mStateListener);
         }
     }
 
@@ -70,6 +81,7 @@ public class MusicPlayerPresenter {
 
             mModel.setCurrentPosition(currentPosition);
             mModel.setTotalDuration(totalDuration);
+            SpUtil.putObject(mView.getContext(), mModel);
             mView.updateProgress(currentPosition, totalDuration);
         }
 

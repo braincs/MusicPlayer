@@ -67,11 +67,11 @@
         android:src="@drawable/next" />
 
     <TextView
-        android:id="@+id/tvPlayer"
+        android:id="@+id/tv_music_name"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="5"
-        android:gravity="center_vertical|end" />
+        android:gravity="center" />
 
 </LinearLayout>
 

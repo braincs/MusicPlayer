@@ -10,8 +10,13 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 
 import java.util.List;
 
@@ -26,6 +31,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private ImageButton btnPlayerPlay;
     private MusicPlayerModel model;
     private MusicPlayerPresenter presenter;
+    private TextView tvTime;
+    private TextView tvDuration;
+    private TextView tvMusicName;
+    private ProgressBar pbMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +54,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
 
     private void initView() {
+        //button
         btnPlayerPlay = findViewById(R.id.player_play);
         ImageButton btnPlayerPrevious = findViewById(R.id.player_previous);
         ImageButton btnPlayerBack = findViewById(R.id.player_back);
@@ -56,6 +66,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         btnPlayerBack.setOnClickListener(playerClickListener);
         btnPlayerForward.setOnClickListener(playerClickListener);
         btnPlayerNext.setOnClickListener(playerClickListener);
+
+        //textview
+        tvTime = findViewById(R.id.tv_music_curpos);
+        tvDuration = findViewById(R.id.tv_music_duration);
+        tvMusicName = findViewById(R.id.tv_music_name);
+
+        //progress bar
+        pbMusic = findViewById(R.id.pb_music);
     }
 
     private void startPlayer() {
@@ -65,6 +83,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "--onServiceConnected--");
             if (service != null) {
                 mPlayer = ((MusicPlayerService.PlayerBinder) service).getService();
                 isBound = true;
@@ -81,7 +100,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unBindService(null);
+        unBindService();
     }
 
     private void getPermissions() {
@@ -96,7 +115,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         }
     }
 
-    public void unBindService(View view) {
+    public void unBindService() {
         if (isBound) {
             unbindService(mConnection);
             isBound = false;
@@ -114,13 +133,13 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     break;
 
                 case R.id.player_back:
-                    // slow down play speed
+                    // slow down playpause speed
 
                     break;
 
                 case R.id.player_play:
-                    // play music / pause music
-                    presenter.play();
+                    // playpause music / pause music
+                    presenter.playpause();
                     break;
 
                 case R.id.player_forward:
@@ -140,12 +159,46 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     };
 
     @Override
+    public void updateProgress(final int progress, final int total) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                pbMusic.setProgress(progress);
+                pbMusic.setMax(total);
+                tvTime.setText(TimeUtil.int2TimeStr(progress));
+                String dur = TimeUtil.int2TimeStr(total);
+                tvDuration.setText(dur);
+            }
+        });
+    }
+
+    @Override
     public void setMusicBtnPlay() {
-        btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.play));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.play));
+            }
+        });
     }
 
     @Override
     public void setMusicBtnPause() {
-        btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.pause));
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.pause));
+            }
+        });
+    }
+
+    @Override
+    public void setMusicBarName(final String name) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                tvMusicName.setText(name);
+            }
+        });
     }
 }

@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
@@ -13,8 +15,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by Shuai
@@ -22,12 +22,19 @@ import java.util.TimerTask;
  */
 public class MusicPlayerService extends Service {
     private final static String TAG = MusicPlayerService.class.getSimpleName();
+
     private static MediaPlayer mediaPlayer;
+    private final static int UI_FRESH_INTERVAL = 1000;
     private Context mContext;
     private AudioManager audioManager;
     private PlayerBinder mBinder = new PlayerBinder(this);
     private List<String> musicList = new LinkedList<>();
     private int currentIndex = 0;
+    private MServiceStateListener stateListener;
+    private HandlerThread mHandlerThread;
+    private Handler mWorkerHandler;
+    private boolean isPlaying = false;
+
 
 
     @Override
@@ -62,10 +69,37 @@ public class MusicPlayerService extends Service {
         mediaPlayer.setOnCompletionListener(completeListener);
     }
 
+    private void initHandler() {
+        if (null == mHandlerThread) {
+            mHandlerThread = new HandlerThread(TAG);
+            mHandlerThread.start();
+        }
+        if (null == mWorkerHandler) {
+            mWorkerHandler = new Handler(mHandlerThread.getLooper());
+            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+        }
+    }
+
+    private void releaseHanlder() {
+        if (null != mWorkerHandler) {
+            mWorkerHandler.removeCallbacksAndMessages(null);
+            mWorkerHandler = null;
+        }
+        if (null != mHandlerThread) {
+            mHandlerThread.quitSafely();
+            mHandlerThread = null;
+        }
+        // resetState mContext
+        this.mContext = null;
+    }
+
+
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "--onStartCommand--");
         initPlayerSafely();
+        initHandler();
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -73,6 +107,7 @@ public class MusicPlayerService extends Service {
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "--onBind--");
         initPlayerSafely();
+        initHandler();
         return mBinder;
     }
 
@@ -87,6 +122,7 @@ public class MusicPlayerService extends Service {
         super.onDestroy();
         Log.d(TAG, "--onDestroy--");
 
+        releaseHanlder();
     }
 
 
@@ -102,8 +138,8 @@ public class MusicPlayerService extends Service {
         @Override
         public void onCompletion(MediaPlayer mp) {
             Log.d(TAG, "--OnCompletionListener--");
-            currentIndex ++;
-            if (currentIndex >= musicList.size()){
+            currentIndex++;
+            if (currentIndex >= musicList.size()) {
                 currentIndex = 0;
             }
             playList();
@@ -129,7 +165,7 @@ public class MusicPlayerService extends Service {
         return -1;
     }
 
-    private boolean updateDataSource(String path){
+    private boolean updateDataSource(String path) {
         mediaPlayer.reset();
         try {
             mediaPlayer.setDataSource(path);
@@ -139,39 +175,64 @@ public class MusicPlayerService extends Service {
             return false;
         }
     }
-    private void startPlayer(){
+
+    private void startPlayer() {
         try {
             mediaPlayer.prepare();
-            mediaPlayer.start();
-        }catch (IOException e){
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mediaPlayer.start();
+                    if (mWorkerHandler != null) {
+                        mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+                    }
+                    isPlaying = true;
+                }
+            });
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    public int getCurrentPosition(){
-        return mediaPlayer.getCurrentPosition();
+
+    public int getCurrentPosition() {
+        if (!isPlaying)return 0;
+        return mediaPlayer.getCurrentPosition() /1000;
+    }
+
+    public int getTotalDuration(){
+        if (!isPlaying)return 0;
+        return mediaPlayer.getDuration() /1000;
     }
 
     public void pause() {
-        mediaPlayer.pause();
+        if (isPlaying){
+            isPlaying = false;
+            mediaPlayer.pause();
+        }
     }
 
-    public void updateMusicList(List<String> list){
+    public void updateMusicList(List<String> list) {
         musicList = list;
     }
 
-    private void playList(){
+    private void playList() {
         if (musicList == null) return;
-        if (!updateDataSource(musicList.get(currentIndex)))return;
+        if (!updateDataSource(musicList.get(currentIndex))) return;
         startPlayer();
     }
-    public void playList(List<String> list, int index){
+
+    public void playList(List<String> list, int index) {
         musicList = list;
         currentIndex = index;
-        if (!updateDataSource(musicList.get(currentIndex)))return;
-        startPlayer();
+        if (list.size() > 0 ) {
+            if (!updateDataSource(musicList.get(currentIndex))) return;
+            startPlayer();
+        }
     }
 
-
+    public void setStateListener(MServiceStateListener stateListener) {
+        this.stateListener = stateListener;
+    }
 
     class PlayerBinder extends Binder {
         private MusicPlayerService service;
@@ -183,5 +244,27 @@ public class MusicPlayerService extends Service {
         public MusicPlayerService getService() {
             return service;
         }
+    }
+
+    private Runnable UIFreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (null != stateListener) {
+//                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + getCurrentPosition() + ", totalDuration: " + getTotalDuration());
+                stateListener.onStateUpdate(isPlaying, getCurrentPosition(), getTotalDuration());
+                if (musicList.size() > 0) {
+                    stateListener.onCurrentMusic(musicList.get(currentIndex));
+                }else {
+                    stateListener.onCurrentMusic("");
+                }
+
+            }
+            mWorkerHandler.postDelayed(this, UI_FRESH_INTERVAL);
+        }
+    };
+
+    interface MServiceStateListener {
+        void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);
+        void onCurrentMusic(String path);
     }
 }

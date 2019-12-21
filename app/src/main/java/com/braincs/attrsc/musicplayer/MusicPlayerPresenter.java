@@ -1,10 +1,15 @@
 package com.braincs.attrsc.musicplayer;
 
+import android.util.Log;
+
+import java.io.File;
+
 /**
  * Created by Shuai
  * 17/12/2019.
  */
 public class MusicPlayerPresenter {
+    private static final String TAG = MusicPlayerPresenter.class.getSimpleName();
     private MusicPlayerView mView;
     private MusicPlayerService mService;
     private MusicPlayerModel mModel;
@@ -13,17 +18,21 @@ public class MusicPlayerPresenter {
         this.mView = mView;
         this.mService = mService;
         this.mModel = model;
+
+        this.mService.setStateListener(mStateListener);
     }
 
-    public void play(){
-//        mService.play();
-        mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
-        mView.setMusicBtnPause();
+    public void playpause(){
+//        mService.playpause();
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+            mService.pause();
+        }else {
+            mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
+        }
     }
 
     public void pause(){
         mService.pause();
-        mView.setMusicBtnPlay();
     }
 
     public void seekTo(int pos){
@@ -45,4 +54,25 @@ public class MusicPlayerPresenter {
     public void speedDown(){
 
     }
+
+    private MusicPlayerService.MServiceStateListener mStateListener = new MusicPlayerService.MServiceStateListener() {
+        @Override
+        public void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration) {
+//            Log.d(TAG, "isPlaying: " + isPlaying +", currentPosition: "+ currentPosition + ", totalDuration: "+totalDuration);
+            if (isPlaying){
+                mModel.setState(MusicPlayerModel.STATE_PLAYING);
+                mView.setMusicBtnPause();
+            }else {
+                mModel.setState(MusicPlayerModel.STATE_IDLE);
+                mView.setMusicBtnPlay();
+            }
+
+            mView.updateProgress(currentPosition, totalDuration);
+        }
+
+        @Override
+        public void onCurrentMusic(String path) {
+            mView.setMusicBarName(new File(path).getName());
+        }
+    };
 }

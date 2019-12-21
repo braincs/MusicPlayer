@@ -12,6 +12,10 @@ import java.util.List;
  * 18/12/2019.
  */
 public class MusicPlayerModel {
+    public final static int STATE_IDLE = 0;
+    public final static int STATE_PLAYING = 1;
+    public final static int STATE_PAUSE = 2;
+    private int state;
     private String directory;
     private List<String> musicList;
     private int currentIndex;
@@ -55,4 +59,11 @@ public class MusicPlayerModel {
         return currentIndex;
     }
 
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
 }

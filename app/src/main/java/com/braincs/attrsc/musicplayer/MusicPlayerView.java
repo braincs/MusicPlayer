@@ -5,8 +5,10 @@ package com.braincs.attrsc.musicplayer;
  * 17/12/2019.
  */
 public interface MusicPlayerView {
-    void setProgress(int progress);
+    void updateProgress(int progress, int total);
 
     void setMusicBtnPlay();
     void setMusicBtnPause();
+
+    void setMusicBarName(String name);
 }

@@ -7,6 +7,13 @@
     android:orientation="vertical"
     tools:context=".MusicPlayerActivity">
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/lv_music"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager" />
+
 
     <LinearLayout
         android:background="@color/STEELBLUE"
@@ -19,7 +26,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingEnd="@dimen/small_pad"
+            android:paddingEnd="@dimen/pad_small"
             android:gravity="end|center_vertical"/>
 
         <SeekBar
@@ -33,7 +40,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:paddingStart="@dimen/small_pad"
+            android:paddingStart="@dimen/pad_small"
             android:gravity="start|center_vertical"/>
     </LinearLayout>
     <include

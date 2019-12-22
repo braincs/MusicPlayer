@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
@@ -38,6 +39,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private TextView tvDuration;
     private TextView tvMusicName;
     private SeekBar pbMusic;
+    private RecyclerView lvMusic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,6 +91,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         //progress bar
         pbMusic = findViewById(R.id.pb_music);
         pbMusic.setOnSeekBarChangeListener(onSeekBarChangeListener);
+
+        //listView
+        lvMusic = findViewById(R.id.lv_music);
     }
 
     private void startService() {
@@ -240,5 +245,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 tvMusicName.setText(name);
             }
         });
+    }
+
+    @Override
+    public void setItems(MusicPlayerModel model) {
+        lvMusic.setAdapter(new MusicPlayerModelAdapter(model));
     }
 }

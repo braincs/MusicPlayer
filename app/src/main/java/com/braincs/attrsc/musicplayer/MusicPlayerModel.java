@@ -37,6 +37,10 @@ public class MusicPlayerModel {
         return musicList;
     }
 
+    public void setCurrentIndex(int currentIndex) {
+        this.currentIndex = currentIndex;
+    }
+
     public int getCurrentIndex() {
         return currentIndex;
     }

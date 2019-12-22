@@ -2,6 +2,8 @@ package com.braincs.attrsc.musicplayer;
 
 import android.content.Context;
 
+import java.util.List;
+
 /**
  * Created by Shuai
  * 17/12/2019.
@@ -14,4 +16,5 @@ public interface MusicPlayerView {
     void setMusicBtnPause();
 
     void setMusicBarName(String name);
+    void setItems(MusicPlayerModel model);
 }

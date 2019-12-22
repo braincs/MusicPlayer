@@ -28,6 +28,7 @@ public class MusicPlayerPresenter {
         mView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
         mView.setMusicBtnPlay();
         mView.updateProgress(mModel.getCurrentPosition(), mModel.getTotalDuration());
+        mView.setItems(mModel);
     }
 
     public void playpause(){
@@ -53,10 +54,12 @@ public class MusicPlayerPresenter {
 
     public void next(){
         mService.playList(mModel.getMusicList(), mModel.next());
+        freshUI();
     }
 
     public void previous(){
         mService.playList(mModel.getMusicList(), mModel.previous());
+        freshUI();
     }
 
     public void speedUp(){
@@ -91,8 +94,12 @@ public class MusicPlayerPresenter {
         }
 
         @Override
-        public void onCurrentMusic(String path) {
-            mView.setMusicBarName(new File(path).getName());
+        public void onCurrentMusic(int index) {
+            if (null == mModel || mModel.getMusicList() == null || mModel.getMusicList().size() < 1)return;
+            // 列表播放时更新 index
+            mModel.setCurrentIndex(index);
+            File file = new File(mModel.getMusicList().get(index));
+            mView.setMusicBarName(file.getName());
         }
     };
 }

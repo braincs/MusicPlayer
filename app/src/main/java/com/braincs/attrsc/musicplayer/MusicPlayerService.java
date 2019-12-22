@@ -268,9 +268,9 @@ public class MusicPlayerService extends Service {
 //                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + getCurrentPosition() + ", totalDuration: " + getTotalDuration());
                 stateListener.onStateUpdate(isPlaying, getCurrentPosition(), getTotalDuration());
                 if (musicList.size() > 0) {
-                    stateListener.onCurrentMusic(musicList.get(currentIndex));
+                    stateListener.onCurrentMusic(currentIndex);
                 }else {
-                    stateListener.onCurrentMusic("");
+                    stateListener.onCurrentMusic(-1);
                 }
 
             }
@@ -280,6 +280,6 @@ public class MusicPlayerService extends Service {
 
     interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);
-        void onCurrentMusic(String path);
+        void onCurrentMusic(int index);
     }
 }

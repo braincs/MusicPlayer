@@ -18,6 +18,15 @@ public class MediaUtil {
     private final static String TAG = MediaUtil.class.getSimpleName();
     private final static String[] MUSIC_SURFIX = {"mp3", "Mp3", "MP3"};
 
+    public static List<String> getAllMediaMp3Files(String subSdcard){
+
+        Log.d(TAG, "--getAllMediaMp3Files--");
+        File externalStorageDirectory = Environment.getExternalStorageDirectory();
+
+        List<String> surfixList = Arrays.asList(MUSIC_SURFIX);
+        return getFiles(new File(externalStorageDirectory ,subSdcard), surfixList);
+    }
+
     public static List<String> getAllMediaMp3Files(){
 
         Log.d(TAG, "--getAllMediaMp3Files--");
@@ -37,6 +46,7 @@ public class MediaUtil {
     public static List<String> getFiles(File directory, List<String> suffix) {
         List<String> files = new LinkedList<>();
         File[] fList = directory.listFiles();
+        if (null == fList || fList.length == 0) return files;
         for (File file : fList) {
 
             if (file.isFile()){

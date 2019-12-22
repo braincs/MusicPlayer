@@ -1,12 +1,20 @@
 package com.braincs.attrsc.musicplayer;
 
+import android.content.Context;
+
+import java.util.List;
+
 /**
  * Created by Shuai
  * 17/12/2019.
  */
 public interface MusicPlayerView {
-    void setProgress(int progress);
+    Context getContext();
+    void updateProgress(int progress, int total);
 
-    void setPlay();
-    void setStop();
+    void setMusicBtnPlay();
+    void setMusicBtnPause();
+
+    void setMusicBarName(String name);
+    void setItems(MusicPlayerModel model);
 }

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/music_ctl_bar"
+    android:layout_width="match_parent"
+    android:layout_height="58dp"
+    android:layout_alignParentBottom="true"
+    android:background="@color/STEELBLUE"
+    android:orientation="horizontal">
+
+
+    <ImageButton
+        android:id="@+id/player_previous"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/TRANSPARENT"
+        android:padding="@dimen/pad_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/previous" />
+
+    <ImageButton
+        android:id="@+id/player_back"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/TRANSPARENT"
+        android:contentDescription="@string/speeddown"
+        android:padding="@dimen/pad_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/backforward"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/player_play"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/TRANSPARENT"
+        android:contentDescription="@string/play"
+        android:padding="@dimen/pad_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/play" />
+
+    <ImageButton
+        android:id="@+id/player_forward"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/TRANSPARENT"
+        android:contentDescription="@string/speedup"
+        android:padding="@dimen/pad_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/fastforward"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/player_next"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/TRANSPARENT"
+        android:contentDescription="@string/next"
+        android:padding="@dimen/pad_small"
+        android:scaleType="fitCenter"
+        android:src="@drawable/next" />
+
+    <TextView
+        android:id="@+id/tv_music_name"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="5"
+        android:textStyle="bold"
+        android:textSize="@dimen/text_size_large"
+        android:textColor="@color/WHITE"
+        android:gravity="center" />
+
+</LinearLayout>
+

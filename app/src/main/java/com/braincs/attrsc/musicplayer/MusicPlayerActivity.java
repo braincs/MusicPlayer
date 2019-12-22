@@ -40,6 +40,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private TextView tvMusicName;
     private SeekBar pbMusic;
     private RecyclerView lvMusic;
+    private MusicPlayerModelAdapter modelAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +58,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 //        currentPos = 0;
 
         initModel();
+
+        initModelAdapter();
     }
 
     private void initModel() {
@@ -68,6 +71,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         Log.d(TAG, model.toString());
     }
 
+    private void initModelAdapter(){
+        modelAdapter = new MusicPlayerModelAdapter(model, musicListOnClickListener);
+        lvMusic.setAdapter(modelAdapter);
+    }
 
     private void initView() {
         //button
@@ -160,6 +167,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         }
     };
 
+    private MusicPlayerModelAdapter.OnItemClickListener musicListOnClickListener = new MusicPlayerModelAdapter.OnItemClickListener(){
+
+        @Override
+        public void onItemClick(View view, int position) {
+            presenter.playList(position);
+        }
+    };
+
     private View.OnClickListener playerClickListener = new View.OnClickListener() {
 
         @Override
@@ -176,8 +191,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     break;
 
                 case R.id.player_play:
-                    // playpause music / pause music
-                    presenter.playpause();
+                    // playControl music / pause music
+                    presenter.playControl();
                     break;
 
                 case R.id.player_forward:
@@ -249,6 +264,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
     @Override
     public void setItems(MusicPlayerModel model) {
-        lvMusic.setAdapter(new MusicPlayerModelAdapter(model));
+        modelAdapter.updateModel(model);
+        modelAdapter.notifyDataSetChanged(); //fresh dataSet
     }
 }

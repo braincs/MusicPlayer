@@ -1,7 +1,5 @@
 package com.braincs.attrsc.musicplayer;
 
-import android.util.Log;
-
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 
 import java.io.File;
@@ -21,29 +19,45 @@ public class MusicPlayerPresenter {
         this.mService = mService;
         this.mModel = model;
         this.mService.setStateListener(mStateListener);
-        freshUI();
+        syncUIwithModel();
     }
 
-    private void freshUI() {
+    private void syncUIwithModel() {
         mView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
-        mView.setMusicBtnPlay();
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+            mView.setMusicBtnPause();
+        }else {
+            mView.setMusicBtnPlay();
+        }
         mView.updateProgress(mModel.getCurrentPosition(), mModel.getTotalDuration());
         mView.setItems(mModel);
     }
 
-    public void playpause(){
-//        mService.playpause();
+    public void playList(int position){
+        mModel.setCurrentIndex(position);
+        play();
+        syncUIwithModel();
+    }
+
+    public void playControl(){
+//        mService.playControl();
         if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
-            updateControlState(false);
-            mService.pause();
+            pause();
         }else {
-            updateControlState(true);
-            mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
-            mService.seek(mModel.getCurrentPosition());
+            playAndSeek();
         }
     }
 
+    public void playAndSeek(){
+        play();
+        mService.seek(mModel.getCurrentPosition());
+    }
+    public void play(){
+        updateControlState(true);
+        mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
+    }
     public void pause(){
+        updateControlState(false);
         mService.pause();
     }
 
@@ -54,12 +68,12 @@ public class MusicPlayerPresenter {
 
     public void next(){
         mService.playList(mModel.getMusicList(), mModel.next());
-        freshUI();
+        syncUIwithModel();
     }
 
     public void previous(){
         mService.playList(mModel.getMusicList(), mModel.previous());
-        freshUI();
+        syncUIwithModel();
     }
 
     public void speedUp(){

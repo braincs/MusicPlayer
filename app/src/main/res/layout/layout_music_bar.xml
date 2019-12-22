@@ -71,6 +71,9 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="5"
+        android:textStyle="bold"
+        android:textSize="@dimen/text_size_large"
+        android:textColor="@color/WHITE"
         android:gravity="center" />
 
 </LinearLayout>

@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -178,19 +179,20 @@ public class MusicPlayerService extends Service {
     private void startPlayer() {
         try {
             mediaPlayer.prepare();
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mediaPlayer.start();
-                    if (mWorkerHandler != null) {
-                        mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
-                    }
-                    isPlaying = true;
-                }
-            });
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(mContext, "File may not existed, please rescan files", Toast.LENGTH_SHORT).show();
         }
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mediaPlayer.start();
+                if (mWorkerHandler != null) {
+                    mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+                }
+                isPlaying = true;
+            }
+        });
     }
 
     public int getCurrentPosition() {

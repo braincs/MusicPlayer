@@ -116,4 +116,11 @@ public class MusicPlayerPresenter {
             mView.setMusicBarName(file.getName());
         }
     };
+
+    public void scanMusic() {
+        mView.setFreshing(true);
+        mModel.scanMusic();
+        mView.setItems(mModel);
+        mView.setFreshing(false);
+    }
 }

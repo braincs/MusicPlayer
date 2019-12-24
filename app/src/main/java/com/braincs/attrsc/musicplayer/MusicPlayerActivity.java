@@ -125,6 +125,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     };
 
     private void startService() {
+        startService(intent);
         bindService(intent, mConnection, Service.BIND_AUTO_CREATE);
     }
 

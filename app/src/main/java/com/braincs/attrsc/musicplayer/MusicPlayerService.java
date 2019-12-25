@@ -1,16 +1,25 @@
 package com.braincs.attrsc.musicplayer;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -22,6 +31,8 @@ import java.util.List;
  */
 public class MusicPlayerService extends Service {
     private final static String TAG = MusicPlayerService.class.getSimpleName();
+    private final static String NOTIFICATION_CHANNEL_ID = "braincs.MusicPlayerService";
+
 
     private static MediaPlayer mediaPlayer;
     private final static int UI_FRESH_INTERVAL = 1000;
@@ -34,7 +45,7 @@ public class MusicPlayerService extends Service {
     private HandlerThread mHandlerThread;
     private Handler mWorkerHandler;
     private boolean isPlaying = false;
-
+    private PendingIntent contentIntent;
 
 
     @Override
@@ -67,6 +78,9 @@ public class MusicPlayerService extends Service {
         audioManager.abandonAudioFocus(focusChangeListener);
 
         mediaPlayer.setOnCompletionListener(completeListener);
+
+        initNotification();
+        displayNotification();
     }
 
     private void initHandler() {
@@ -178,19 +192,20 @@ public class MusicPlayerService extends Service {
     private void startPlayer() {
         try {
             mediaPlayer.prepare();
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mediaPlayer.start();
-                    if (mWorkerHandler != null) {
-                        mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
-                    }
-                    isPlaying = true;
-                }
-            });
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(mContext, "File may not existed, please rescan files", Toast.LENGTH_SHORT).show();
         }
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mediaPlayer.start();
+                if (mWorkerHandler != null) {
+                    mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+                }
+                isPlaying = true;
+            }
+        });
     }
 
     public int getCurrentPosition() {
@@ -277,6 +292,52 @@ public class MusicPlayerService extends Service {
             mWorkerHandler.postDelayed(this, UI_FRESH_INTERVAL);
         }
     };
+
+    //region
+    private void initNotification(){
+        contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(mContext, MusicPlayerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MusicPlayerService", NotificationManager.IMPORTANCE_NONE);
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            assert manager != null;
+            manager.createNotificationChannel(chan);
+        }
+    }
+    private void displayNotification(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            startMyOwnForeground8_0();
+        else
+            startMyOwnForeground();
+    }
+
+    private void startMyOwnForeground(){
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.player_icon)
+                .setContentTitle("App is running in background")
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setContentIntent(contentIntent)
+                .build();
+        startForeground(1, notification);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void startMyOwnForeground8_0(){
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.player_icon)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MAX)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setContentIntent(contentIntent)
+                .build();
+        startForeground(1, notification);
+    }
+    //endregion
 
     interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);

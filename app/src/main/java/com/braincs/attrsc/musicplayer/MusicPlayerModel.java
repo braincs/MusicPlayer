@@ -7,6 +7,8 @@ import com.braincs.attrsc.musicplayer.utils.MediaUtil;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -32,9 +34,19 @@ public class MusicPlayerModel {
 
         //todo async method implementation
         if (musicList == null || musicList.size() == 0 ) {
-            musicList = MediaUtil.getAllMediaMp3Files(directory);
+            scanMusic();
         }
         return musicList;
+    }
+
+    public void scanMusic(){
+        musicList = MediaUtil.getAllMediaMp3Files(directory);
+        Collections.sort(musicList, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareToIgnoreCase(o2);
+            }
+        });
     }
 
     public void setCurrentIndex(int currentIndex) {

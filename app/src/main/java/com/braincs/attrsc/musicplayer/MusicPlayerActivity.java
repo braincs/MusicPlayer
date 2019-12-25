@@ -9,6 +9,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
@@ -41,6 +42,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private SeekBar pbMusic;
     private RecyclerView lvMusic;
     private MusicPlayerModelAdapter modelAdapter;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +68,16 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         model = SpUtil.getObject(context, MusicPlayerModel.class);
         if (model == null){
             model = new MusicPlayerModel("Music");
-            SpUtil.putObject(context, model);
+            /**
+             * Showing Swipe Refresh animation on activity create
+             * As animation won't start on onCreate, post runnable is used
+             */
+            mSwipeRefreshLayout.post(new Runnable() {
+                @Override
+                public void run() {
+                    presenter.scanMusic();
+                }
+            });
         }
         Log.d(TAG, model.toString());
     }
@@ -101,9 +112,20 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
         //listView
         lvMusic = findViewById(R.id.lv_music);
+        mSwipeRefreshLayout = findViewById(R.id.swipe_container);
+        mSwipeRefreshLayout.setOnRefreshListener(pullDownFreshListener);
     }
 
+    private SwipeRefreshLayout.OnRefreshListener pullDownFreshListener = new SwipeRefreshLayout.OnRefreshListener() {
+        @Override
+        public void onRefresh() {
+            // Showing refresh animation before making http call
+            presenter.scanMusic();
+        }
+    };
+
     private void startService() {
+        startService(intent);
         bindService(intent, mConnection, Service.BIND_AUTO_CREATE);
     }
 
@@ -266,5 +288,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     public void setItems(MusicPlayerModel model) {
         modelAdapter.updateModel(model);
         modelAdapter.notifyDataSetChanged(); //fresh dataSet
+    }
+
+    @Override
+    public void setFreshing(boolean isFreshing) {
+        mSwipeRefreshLayout.setRefreshing(isFreshing);
     }
 }

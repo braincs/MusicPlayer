@@ -23,7 +23,11 @@ public class MusicPlayerPresenter {
     }
 
     private void syncUIwithModel() {
-        mView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
+        if (mModel.getMusicList().size() == 0){
+            mView.setMusicBarName("");
+        }else {
+            mView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
+        }
         if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
             mView.setMusicBtnPause();
         }else {
@@ -116,4 +120,11 @@ public class MusicPlayerPresenter {
             mView.setMusicBarName(file.getName());
         }
     };
+
+    public void scanMusic() {
+        mView.setFreshing(true);
+        mModel.scanMusic();
+        mView.setItems(mModel);
+        mView.setFreshing(false);
+    }
 }

@@ -1,28 +1,37 @@
 package com.braincs.attrsc.musicplayer;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerView{
     private final static String TAG = MusicPlayerActivity.class.getSimpleName();
@@ -43,6 +52,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private RecyclerView lvMusic;
     private MusicPlayerModelAdapter modelAdapter;
     private SwipeRefreshLayout mSwipeRefreshLayout;
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
+    private Timer timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +62,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         setContentView(R.layout.activity_main);
         context = this.getApplicationContext();
         intent = new Intent(this, MusicPlayerService.class);
+        timer = new Timer("stopTimer");
 
         getPermissions();
         startService();
@@ -114,6 +127,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         lvMusic = findViewById(R.id.lv_music);
         mSwipeRefreshLayout = findViewById(R.id.swipe_container);
         mSwipeRefreshLayout.setOnRefreshListener(pullDownFreshListener);
+
+        //drawer view
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.navigation_view);
+        navigationView.getHeaderView(0).setOnClickListener(drawerHeaderViewOnClickListener);
+        navigationView.setNavigationItemSelectedListener(navigationItemSelectedListener);
     }
 
     private SwipeRefreshLayout.OnRefreshListener pullDownFreshListener = new SwipeRefreshLayout.OnRefreshListener() {
@@ -170,6 +189,86 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             isBound = false;
         }
     }
+
+    private void displayTimerSelector() {
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(MusicPlayerActivity.this);
+        builder.setTitle("Stop timer");
+
+        // add a radio button list
+        final String[] durations = {"none", "10 mins", "20 mins", "30 mins", "45 mins", "60 mins"};
+        int checkedItem = 0; // none
+        final int[] selectedDuration = {0};
+        builder.setSingleChoiceItems(durations, checkedItem, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // user checked an item
+                if (which == 0) return;
+                String durationStr = durations[which].split(" ")[0];
+                selectedDuration[0] = Integer.parseInt(durationStr);
+                Log.d(TAG, "selected duration = " + selectedDuration[0]);
+            }
+        });
+
+        // add OK and Cancel buttons
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // user clicked OK
+                // start timer
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        presenter.pause();
+                        unBindService();
+                        finish();
+                    }
+                },selectedDuration[0] * 60 * 1000);
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    //region Click Listener
+    private View.OnClickListener drawerHeaderViewOnClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            drawerLayout.closeDrawer(navigationView);
+            Toast.makeText(context, "Header view onclick", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private NavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener = new NavigationView.OnNavigationItemSelectedListener() {
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+            switch (menuItem.getItemId()) {
+                case R.id.menu_local_music:
+                    Toast.makeText(context, "Home is clicked!", Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.menu_settings:
+                    Toast.makeText(context, "Settings is clicked!", Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.menu_timer:
+                    Toast.makeText(context, "Timer is clicked!", Toast.LENGTH_SHORT).show();
+                    displayTimerSelector();
+                    break;
+                case R.id.menu_share:
+                    Toast.makeText(context, "Share is clicked!", Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.menu_about:
+                    Toast.makeText(context, "About is clicked!", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            drawerLayout.closeDrawer(navigationView);
+            return false;
+        }
+    };
+
+
 
     private SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
@@ -232,6 +331,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             }
         }
     };
+    //endregion
 
     @Override
     public Context getContext() {

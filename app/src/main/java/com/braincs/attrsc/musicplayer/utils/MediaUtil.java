@@ -59,7 +59,8 @@ public class MediaUtil {
                     files.add(file.getAbsolutePath());
                 }
             } else if (file.isDirectory()) {
-                getFiles(file, suffix);
+                List<String> subFiles = getFiles(file, suffix);
+                files.addAll(subFiles);
             }
         }
 

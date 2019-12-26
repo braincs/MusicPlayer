@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/music_ctl_bar"
+    android:layout_width="match_parent"
+    android:layout_height="128dp"
+    android:layout_alignParentBottom="true">
+
+
+    <ImageView
+        android:id="@+id/iv_music"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/player_icon"
+        android:visibility="visible"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@+id/iv_music"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/tv_not_music_name"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:lines="2"
+                android:padding="@dimen/pad_small"
+                android:textSize="@dimen/text_size_large"
+                android:textStyle="bold" />
+            <ImageButton
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@color/TRANSPARENT"
+                android:padding="@dimen/pad_small"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_exit" />
+        </LinearLayout>
+
+
+        <include
+            android:id="@+id/music_ctl_not_bar"
+            layout="@layout/layout_music_ctrl_bar" />
+    </LinearLayout>
+
+
+
+
+</RelativeLayout>
+

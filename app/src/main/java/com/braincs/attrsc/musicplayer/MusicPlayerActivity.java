@@ -2,7 +2,11 @@ package com.braincs.attrsc.musicplayer;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,7 +16,9 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +28,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +42,8 @@ import java.util.TimerTask;
 
 public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerView{
     private final static String TAG = MusicPlayerActivity.class.getSimpleName();
+    private final static String NOTIFICATION_CHANNEL_ID = "braincs.MusicPlayerService";
+    private final static int NOTIFICATION_ID = 1;
 
     private Context context;
     private Intent intent;
@@ -44,7 +53,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private int currentPos;
     private ImageButton btnPlayerPlay;
     private MusicPlayerModel model;
-    private MusicPlayerPresenter presenter;
+    private static MusicPlayerPresenter presenter;
     private TextView tvTime;
     private TextView tvDuration;
     private TextView tvMusicName;
@@ -55,7 +64,27 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
     private Timer timer;
+    private PendingIntent contentIntent;
+    private RemoteViews notificationView;
+    private ImageButton btnNotiPlayerPlay;
+    private TextView tvNotiMusicName;
+    private NotificationCompat.Builder notificationBuilder;
+    private NotificationManager notificationManager;
 
+    public static class NotificationReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction() ==null) return;
+            if (intent.getAction().equalsIgnoreCase("PLAY_PAUSE")){
+                presenter.playControl();
+            }else if (intent.getAction().equalsIgnoreCase("NEXT")){
+                presenter.next();
+            }else if (intent.getAction().equalsIgnoreCase("PREVIOUS")){
+                presenter.previous();
+            }
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -154,8 +183,13 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             Log.d(TAG, "--onServiceConnected--");
             if (service != null) {
                 mPlayer = ((MusicPlayerService.PlayerBinder) service).getService();
-                isBound = true;
                 presenter = new MusicPlayerPresenter(MusicPlayerActivity.this, mPlayer, model);
+
+                initNotification();
+                displayNotification();
+
+                //todo need update ui here
+                isBound = true;
             }
         }
 
@@ -232,6 +266,75 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+    //region
+    private void initNotification(){
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationView = new RemoteViews(getPackageName(), R.layout.layout_music_notification_bar);
+        contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
+        Intent intentPlayPause = new Intent(this, MusicPlayerActivity.NotificationReceiver.class);
+        intentPlayPause.setAction("PLAY_PAUSE");
+        intentPlayPause.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingPlayPauseIntent = PendingIntent.getBroadcast(this, 0, intentPlayPause, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent intentNext = new Intent(this, MusicPlayerActivity.NotificationReceiver.class);
+        intentNext.setAction("NEXT");
+        intentNext.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingNextIntent = PendingIntent.getBroadcast(this, 1, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        Intent intentPrevious = new Intent(this, MusicPlayerActivity.NotificationReceiver.class);
+        intentPrevious.setAction("PREVIOUS");
+        intentPrevious.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingPreviousIntent = PendingIntent.getBroadcast(this, 2, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        notificationView.setOnClickPendingIntent(R.id.noti_player_play, pendingPlayPauseIntent);
+        notificationView.setOnClickPendingIntent(R.id.noti_player_previous, pendingPreviousIntent);
+        notificationView.setOnClickPendingIntent(R.id.noti_player_next, pendingNextIntent);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MusicPlayerService", NotificationManager.IMPORTANCE_NONE);
+//            chan.setLightColor(Color.BLUE);
+//            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+//            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//            assert manager != null;
+//            manager.createNotificationChannel(chan);
+//        }
+    }
+    @Override
+    public void displayNotification(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            startMyOwnForeground8_0();
+        else
+            startMyOwnForeground();
+
+    }
+
+    private void startMyOwnForeground(){
+        notificationBuilder = new NotificationCompat.Builder(this);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.player_icon)
+                .setContentTitle("App is running in background")
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setContentIntent(contentIntent)
+                .setContent(notificationView)
+                .build();
+        mPlayer.startForeground(NOTIFICATION_ID, notification);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void startMyOwnForeground8_0(){
+        notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.player_icon)
+                .setContentTitle("App is running in background")
+                .setPriority(NotificationManager.IMPORTANCE_MAX)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setContentIntent(contentIntent)
+                .setContent(notificationView)
+                .build();
+        mPlayer.startForeground(NOTIFICATION_ID, notification);
+    }
+    //endregion
 
     //region Click Listener
     private View.OnClickListener drawerHeaderViewOnClickListener = new View.OnClickListener() {
@@ -360,6 +463,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.play));
+                if (isBound) {
+                    // update notification bar
+                    notificationView.setImageViewResource(R.id.noti_player_play, R.drawable.notification_play);
+                    notificationBuilder.setContent(notificationView);
+                    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+                }
             }
         });
     }
@@ -370,6 +479,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.pause));
+                if (isBound) {
+                    // update notification bar
+                    notificationView.setImageViewResource(R.id.noti_player_play, R.drawable.notification_pause);
+                    notificationBuilder.setContent(notificationView);
+                    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+                }
             }
         });
     }
@@ -380,6 +495,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 tvMusicName.setText(name);
+                if (isBound) {
+                    // update notification bar
+                    notificationView.setTextViewText(R.id.tv_not_music_name, name);
+                    notificationBuilder.setContent(notificationView);
+                    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+                }
             }
         });
     }

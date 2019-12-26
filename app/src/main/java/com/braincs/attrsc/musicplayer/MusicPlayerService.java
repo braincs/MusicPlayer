@@ -31,7 +31,6 @@ import java.util.List;
  */
 public class MusicPlayerService extends Service {
     private final static String TAG = MusicPlayerService.class.getSimpleName();
-    private final static String NOTIFICATION_CHANNEL_ID = "braincs.MusicPlayerService";
 
 
     private static MediaPlayer mediaPlayer;
@@ -45,7 +44,6 @@ public class MusicPlayerService extends Service {
     private HandlerThread mHandlerThread;
     private Handler mWorkerHandler;
     private boolean isPlaying = false;
-    private PendingIntent contentIntent;
 
 
     @Override
@@ -79,8 +77,6 @@ public class MusicPlayerService extends Service {
 
         mediaPlayer.setOnCompletionListener(completeListener);
 
-        initNotification();
-        displayNotification();
     }
 
     private void initHandler() {
@@ -293,51 +289,6 @@ public class MusicPlayerService extends Service {
         }
     };
 
-    //region
-    private void initNotification(){
-        contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(mContext, MusicPlayerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MusicPlayerService", NotificationManager.IMPORTANCE_NONE);
-            chan.setLightColor(Color.BLUE);
-            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            assert manager != null;
-            manager.createNotificationChannel(chan);
-        }
-    }
-    private void displayNotification(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            startMyOwnForeground8_0();
-        else
-            startMyOwnForeground();
-    }
-
-    private void startMyOwnForeground(){
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.drawable.player_icon)
-                .setContentTitle("App is running in background")
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .setContentIntent(contentIntent)
-                .build();
-        startForeground(1, notification);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void startMyOwnForeground8_0(){
-        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.drawable.player_icon)
-                .setContentTitle("App is running in background")
-                .setPriority(NotificationManager.IMPORTANCE_MAX)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .setContentIntent(contentIntent)
-                .build();
-        startForeground(1, notification);
-    }
-    //endregion
 
     interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);

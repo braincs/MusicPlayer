@@ -4,28 +4,29 @@
 
         <item
             android:id="@+id/menu_local_music"
-            android:icon="@drawable/local_music"
+            android:icon="@drawable/menu_local"
             android:title="Local" />
 
         <item
             android:id="@+id/menu_settings"
-            android:icon="@drawable/setting"
+            android:icon="@drawable/menu_setting"
             android:title="Settings" />
 
         <item
             android:id="@+id/menu_timer"
-            android:icon="@android:drawable/ic_menu_agenda"
-            android:title="Settings" />
+            android:icon="@drawable/menu_timer"
+            android:title="Stop Timer" />
 
         <item android:title="Other">
             <menu>
                 <item
                     android:id="@+id/menu_share"
+                    android:visible="false"
                     android:icon="@android:drawable/ic_menu_share"
                     android:title="Share" />
                 <item
                     android:id="@+id/menu_about"
-                    android:icon="@android:drawable/ic_menu_help"
+                    android:icon="@drawable/menu_info"
                     android:title="About" />
             </menu>
         </item>

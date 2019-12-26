@@ -13,6 +13,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <receiver android:name=".MusicPlayerActivity$NotificationReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="PLAY_PAUSE" />
+                <action android:name="NEXT" />
+                <action android:name="PREVIOUS" />
+            </intent-filter>
+        </receiver>
         <activity android:name=".MusicPlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

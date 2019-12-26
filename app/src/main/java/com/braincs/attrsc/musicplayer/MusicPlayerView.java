@@ -18,4 +18,6 @@ public interface MusicPlayerView {
     void setMusicBarName(String name);
     void setItems(MusicPlayerModel model);
     void setFreshing(boolean isFreshing);
+
+    void displayNotification();
 }

@@ -1,25 +1,41 @@
-package com.braincs.attrsc.musicplayer;
+package com.braincs.attrsc.musicplayer.presenter;
 
+import android.app.Activity;
+import android.app.Notification;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.util.Log;
+
+import com.braincs.attrsc.musicplayer.MusicPlayerModel;
+import com.braincs.attrsc.musicplayer.MusicPlayerService;
+import com.braincs.attrsc.musicplayer.MusicPlayerView;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 
 import java.io.File;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Shuai
  * 17/12/2019.
  */
-public class MusicPlayerPresenter {
+public class MusicPlayerPresenter implements BasePresenter{
     private static final String TAG = MusicPlayerPresenter.class.getSimpleName();
     private MusicPlayerView mView;
     private MusicPlayerService mService;
     private MusicPlayerModel mModel;
+    private boolean isBound = false;
+    private Intent serviceIntent;
+    private Timer timer;
 
-    public MusicPlayerPresenter(MusicPlayerView mView, MusicPlayerService mService, MusicPlayerModel model) {
+
+    public MusicPlayerPresenter(MusicPlayerView mView, MusicPlayerModel model) {
         this.mView = mView;
-        this.mService = mService;
         this.mModel = model;
-        this.mService.setStateListener(mStateListener);
-        syncUIwithModel();
+        timer = new Timer("stopTimer");
     }
 
     private void syncUIwithModel() {
@@ -51,6 +67,44 @@ public class MusicPlayerPresenter {
             playAndSeek();
         }
     }
+    private void startService() {
+        serviceIntent = new Intent(mView.getContext(), MusicPlayerService.class);
+        mView.getContext().startService(serviceIntent);
+        mView.getContext().bindService(serviceIntent, mConnection, Service.BIND_AUTO_CREATE);
+    }
+
+    private void unBindService() {
+        if (isBound) {
+            mView.getContext().unbindService(mConnection);
+            isBound = false;
+        }
+    }
+
+    public void bindForegroundService(int id, Notification notification){
+        mService.startForeground(id, notification);
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "--onServiceConnected--");
+            if (service != null) {
+                mService = ((MusicPlayerService.PlayerBinder) service).getService();
+                mService.setStateListener(mStateListener);
+
+                mView.displayNotification();
+
+                isBound = true;
+                // update ui
+                syncUIwithModel();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
 
     public void playAndSeek(){
         play();
@@ -121,10 +175,39 @@ public class MusicPlayerPresenter {
         }
     };
 
+    public boolean isBound() {
+        return isBound;
+    }
+
     public void scanMusic() {
         mView.setFreshing(true);
         mModel.scanMusic();
         mView.setItems(mModel);
         mView.setFreshing(false);
+    }
+
+    public void stopAndFinish(int min){
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                pause();
+                unBindService();
+                ((Activity)mView.getContext()).finish();
+            }
+        },min * 60 * 1000);
+    }
+    @Override
+    public void onResume() {
+        startService();
+    }
+
+    @Override
+    public void onPause() {
+
+    }
+
+    @Override
+    public void onStop() {
+        unBindService();
     }
 }

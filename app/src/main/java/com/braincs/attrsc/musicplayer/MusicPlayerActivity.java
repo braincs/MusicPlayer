@@ -5,16 +5,12 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
@@ -33,12 +29,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerView{
     private final static String TAG = MusicPlayerActivity.class.getSimpleName();
@@ -46,9 +41,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private final static int NOTIFICATION_ID = 1;
 
     private Context context;
-    private Intent intent;
-    private MusicPlayerService mPlayer;
-    private boolean isBound = false;
     private List<String> mp3Files;
     private int currentPos;
     private ImageButton btnPlayerPlay;
@@ -63,11 +55,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
-    private Timer timer;
     private PendingIntent contentIntent;
     private RemoteViews notificationView;
-    private ImageButton btnNotiPlayerPlay;
-    private TextView tvNotiMusicName;
     private NotificationCompat.Builder notificationBuilder;
     private NotificationManager notificationManager;
 
@@ -90,23 +79,20 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this.getApplicationContext();
-        intent = new Intent(this, MusicPlayerService.class);
-        timer = new Timer("stopTimer");
 
         getPermissions();
-        startService();
 
         initView();
 //        mp3Files = MediaUtil.getAllMediaMp3Files();
 //        Log.d(TAG, Arrays.toString(mp3Files.toArray()));
 //        currentPos = 0;
 
-        initModel();
+        initModelPresenter();
 
         initModelAdapter();
     }
 
-    private void initModel() {
+    private void initModelPresenter() {
         model = SpUtil.getObject(context, MusicPlayerModel.class);
         if (model == null){
             model = new MusicPlayerModel("Music");
@@ -121,6 +107,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 }
             });
         }
+        presenter = new MusicPlayerPresenter(MusicPlayerActivity.this, model);
         Log.d(TAG, model.toString());
     }
 
@@ -172,37 +159,22 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         }
     };
 
-    private void startService() {
-        startService(intent);
-        bindService(intent, mConnection, Service.BIND_AUTO_CREATE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        presenter.onResume();
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.d(TAG, "--onServiceConnected--");
-            if (service != null) {
-                mPlayer = ((MusicPlayerService.PlayerBinder) service).getService();
-                presenter = new MusicPlayerPresenter(MusicPlayerActivity.this, mPlayer, model);
-
-                initNotification();
-                displayNotification();
-
-                //todo need update ui here
-                isBound = true;
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            isBound = false;
-        }
-    };
+    @Override
+    protected void onPause() {
+        super.onPause();
+        presenter.onPause();
+    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unBindService();
+        presenter.onStop();
     }
 
     private void getPermissions() {
@@ -217,12 +189,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         }
     }
 
-    public void unBindService() {
-        if (isBound) {
-            unbindService(mConnection);
-            isBound = false;
-        }
-    }
 
     private void displayTimerSelector() {
         // setup the alert builder
@@ -250,14 +216,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             public void onClick(DialogInterface dialog, int which) {
                 // user clicked OK
                 // start timer
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        presenter.pause();
-                        unBindService();
-                        finish();
-                    }
-                },selectedDuration[0] * 60 * 1000);
+                presenter.stopAndFinish(selectedDuration[0]);
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -302,6 +261,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
     @Override
     public void displayNotification(){
+        initNotification();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             startMyOwnForeground8_0();
         else
@@ -318,7 +279,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 .setContentIntent(contentIntent)
                 .setContent(notificationView)
                 .build();
-        mPlayer.startForeground(NOTIFICATION_ID, notification);
+        presenter.bindForegroundService(NOTIFICATION_ID, notification);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -332,7 +293,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 .setContentIntent(contentIntent)
                 .setContent(notificationView)
                 .build();
-        mPlayer.startForeground(NOTIFICATION_ID, notification);
+        presenter.bindForegroundService(NOTIFICATION_ID, notification);
     }
     //endregion
 
@@ -463,7 +424,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.play));
-                if (isBound) {
+                if (presenter.isBound()) {
                     // update notification bar
                     notificationView.setImageViewResource(R.id.noti_player_play, R.drawable.notification_play);
                     notificationBuilder.setContent(notificationView);
@@ -479,7 +440,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.pause));
-                if (isBound) {
+                if (presenter.isBound()) {
                     // update notification bar
                     notificationView.setImageViewResource(R.id.noti_player_play, R.drawable.notification_pause);
                     notificationBuilder.setContent(notificationView);
@@ -495,7 +456,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 tvMusicName.setText(name);
-                if (isBound) {
+                if (presenter.isBound()) {
                     // update notification bar
                     notificationView.setTextViewText(R.id.tv_not_music_name, name);
                     notificationBuilder.setContent(notificationView);

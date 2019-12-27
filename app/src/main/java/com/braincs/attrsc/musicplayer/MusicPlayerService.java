@@ -251,7 +251,7 @@ public class MusicPlayerService extends Service {
         mediaPlayer.seekTo(pos);
     }
 
-    class PlayerBinder extends Binder {
+    public class PlayerBinder extends Binder {
         private MusicPlayerService service;
 
         public PlayerBinder(MusicPlayerService service) {
@@ -290,7 +290,7 @@ public class MusicPlayerService extends Service {
     };
 
 
-    interface MServiceStateListener {
+    public interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);
         void onCurrentMusic(int index);
     }

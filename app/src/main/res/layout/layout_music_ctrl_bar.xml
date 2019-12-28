@@ -15,9 +15,8 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/TRANSPARENT"
-        android:padding="@dimen/pad_small"
         android:scaleType="fitCenter"
-        android:src="@drawable/notification_backward"/>
+        android:src="@drawable/notification_previous"/>
 
     <!--<ImageView-->
         <!--android:id="@+id/not_player_back"-->
@@ -38,7 +37,6 @@
         android:layout_weight="1"
         android:background="@color/TRANSPARENT"
         android:contentDescription="@string/play"
-        android:padding="@dimen/pad_small"
         android:scaleType="fitCenter"
         android:src="@drawable/notification_play" />
 
@@ -61,9 +59,8 @@
         android:layout_weight="1"
         android:background="@color/TRANSPARENT"
         android:contentDescription="@string/next"
-        android:padding="@dimen/pad_small"
         android:scaleType="fitCenter"
-        android:src="@drawable/notification_forward"
+        android:src="@drawable/notification_next"
         android:visibility="visible"/>
 
 </LinearLayout>

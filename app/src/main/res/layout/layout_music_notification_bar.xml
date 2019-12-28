@@ -42,7 +42,7 @@
                 android:background="@color/TRANSPARENT"
                 android:padding="@dimen/pad_small"
                 android:scaleType="fitXY"
-                android:src="@drawable/notification_exit" />
+                android:src="@drawable/notification_close" />
         </LinearLayout>
 
 

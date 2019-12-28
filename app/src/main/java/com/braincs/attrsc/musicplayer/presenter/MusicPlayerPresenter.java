@@ -11,8 +11,10 @@ import android.util.Log;
 
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
-import com.braincs.attrsc.musicplayer.MusicPlayerView;
+import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
+import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
+import com.braincs.attrsc.musicplayer.view.NotificationView;
 
 import java.io.File;
 import java.util.Timer;
@@ -24,7 +26,8 @@ import java.util.TimerTask;
  */
 public class MusicPlayerPresenter implements BasePresenter{
     private static final String TAG = MusicPlayerPresenter.class.getSimpleName();
-    private MusicPlayerView mView;
+    private MusicPlayerActivityView mView;
+    private MusicPlayerNotificationView mNotificationView;
     private MusicPlayerService mService;
     private MusicPlayerModel mModel;
     private boolean isBound = false;
@@ -32,9 +35,10 @@ public class MusicPlayerPresenter implements BasePresenter{
     private Timer timer;
 
 
-    public MusicPlayerPresenter(MusicPlayerView mView, MusicPlayerModel model) {
+    public MusicPlayerPresenter(MusicPlayerActivityView mView, MusicPlayerModel model) {
         this.mView = mView;
         this.mModel = model;
+        this.mNotificationView = new NotificationView(mView.getContext());
         timer = new Timer("stopTimer");
     }
 
@@ -51,6 +55,21 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
         mView.updateProgress(mModel.getCurrentPosition(), mModel.getTotalDuration());
         mView.setItems(mModel);
+
+        freshNotificationUI();
+    }
+
+    private void freshNotificationUI(){
+        if (mModel.getMusicList().size() == 0){
+            mNotificationView.setMusicBarName("");
+        }else {
+            mNotificationView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
+        }
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+            mNotificationView.setMusicBtnPause();
+        }else {
+            mNotificationView.setMusicBtnPlay();
+        }
     }
 
     public void playList(int position){
@@ -92,7 +111,7 @@ public class MusicPlayerPresenter implements BasePresenter{
                 mService = ((MusicPlayerService.PlayerBinder) service).getService();
                 mService.setStateListener(mStateListener);
 
-                mView.displayNotification();
+                mNotificationView.displayNotification();
 
                 isBound = true;
                 // update ui
@@ -146,9 +165,11 @@ public class MusicPlayerPresenter implements BasePresenter{
         if (isPlaying){
             mModel.setState(MusicPlayerModel.STATE_PLAYING);
             mView.setMusicBtnPause();
+            mNotificationView.setMusicBtnPause();
         }else {
             mModel.setState(MusicPlayerModel.STATE_PAUSE);
             mView.setMusicBtnPlay();
+            mNotificationView.setMusicBtnPlay();
         }
     }
 

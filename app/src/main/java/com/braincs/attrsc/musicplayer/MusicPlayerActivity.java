@@ -32,17 +32,15 @@ import android.widget.Toast;
 import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
+import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
+import com.braincs.attrsc.musicplayer.view.MusicPlayerView;
 
-import java.util.List;
-
-public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerView{
+public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerActivityView {
     private final static String TAG = MusicPlayerActivity.class.getSimpleName();
     private final static String NOTIFICATION_CHANNEL_ID = "braincs.MusicPlayerService";
     private final static int NOTIFICATION_ID = 1;
 
     private Context context;
-    private List<String> mp3Files;
-    private int currentPos;
     private ImageButton btnPlayerPlay;
     private MusicPlayerModel model;
     private static MusicPlayerPresenter presenter;
@@ -226,7 +224,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         dialog.show();
     }
 
-    //region
+    //region Notification
     private void initNotification(){
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         notificationView = new RemoteViews(getPackageName(), R.layout.layout_music_notification_bar);
@@ -259,42 +257,32 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 //            manager.createNotificationChannel(chan);
 //        }
     }
-    @Override
-    public void displayNotification(){
-        initNotification();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            startMyOwnForeground8_0();
-        else
-            startMyOwnForeground();
-
-    }
-
-    private void startMyOwnForeground(){
-        notificationBuilder = new NotificationCompat.Builder(this);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.drawable.player_icon)
-                .setContentTitle("App is running in background")
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .setContentIntent(contentIntent)
-                .setContent(notificationView)
-                .build();
-        presenter.bindForegroundService(NOTIFICATION_ID, notification);
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void startMyOwnForeground8_0(){
-        notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
-        Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.drawable.player_icon)
-                .setContentTitle("App is running in background")
-                .setPriority(NotificationManager.IMPORTANCE_MAX)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .setContentIntent(contentIntent)
-                .setContent(notificationView)
-                .build();
-        presenter.bindForegroundService(NOTIFICATION_ID, notification);
-    }
+//
+//    private void startMyOwnForeground(){
+//        notificationBuilder = new NotificationCompat.Builder(this);
+//        Notification notification = notificationBuilder.setOngoing(true)
+//                .setSmallIcon(R.drawable.player_icon)
+//                .setContentTitle("App is running in background")
+//                .setCategory(Notification.CATEGORY_SERVICE)
+//                .setContentIntent(contentIntent)
+//                .setContent(notificationView)
+//                .build();
+//        presenter.bindForegroundService(NOTIFICATION_ID, notification);
+//    }
+//
+//    @RequiresApi(api = Build.VERSION_CODES.O)
+//    private void startMyOwnForeground8_0(){
+//        notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+//        Notification notification = notificationBuilder.setOngoing(true)
+//                .setSmallIcon(R.drawable.player_icon)
+//                .setContentTitle("App is running in background")
+//                .setPriority(NotificationManager.IMPORTANCE_MAX)
+//                .setCategory(Notification.CATEGORY_SERVICE)
+//                .setContentIntent(contentIntent)
+//                .setContent(notificationView)
+//                .build();
+//        presenter.bindForegroundService(NOTIFICATION_ID, notification);
+//    }
     //endregion
 
     //region Click Listener
@@ -317,7 +305,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     Toast.makeText(context, "Settings is clicked!", Toast.LENGTH_SHORT).show();
                     break;
                 case R.id.menu_timer:
-                    Toast.makeText(context, "Timer is clicked!", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(context, "Timer is clicked!", Toast.LENGTH_SHORT).show();
                     displayTimerSelector();
                     break;
                 case R.id.menu_share:
@@ -424,12 +412,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.play));
-                if (presenter.isBound()) {
-                    // update notification bar
-                    notificationView.setImageViewResource(R.id.noti_player_play, R.drawable.notification_play);
-                    notificationBuilder.setContent(notificationView);
-                    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
-                }
+//                }
             }
         });
     }
@@ -440,12 +423,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 btnPlayerPlay.setImageDrawable(getDrawable(R.drawable.pause));
-                if (presenter.isBound()) {
-                    // update notification bar
-                    notificationView.setImageViewResource(R.id.noti_player_play, R.drawable.notification_pause);
-                    notificationBuilder.setContent(notificationView);
-                    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
-                }
             }
         });
     }
@@ -456,12 +433,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void run() {
                 tvMusicName.setText(name);
-                if (presenter.isBound()) {
-                    // update notification bar
-                    notificationView.setTextViewText(R.id.tv_not_music_name, name);
-                    notificationBuilder.setContent(notificationView);
-                    notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
-                }
             }
         });
     }

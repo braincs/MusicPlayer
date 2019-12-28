@@ -1,6 +1,8 @@
-package com.braincs.attrsc.musicplayer;
+package com.braincs.attrsc.musicplayer.view;
 
 import android.content.Context;
+
+import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 
 import java.util.List;
 
@@ -17,7 +19,5 @@ public interface MusicPlayerView {
 
     void setMusicBarName(String name);
     void setItems(MusicPlayerModel model);
-    void setFreshing(boolean isFreshing);
 
-    void displayNotification();
 }

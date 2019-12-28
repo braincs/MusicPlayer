@@ -272,6 +272,7 @@ public class MusicPlayerService extends Service {
         if (mWorkerHandler != null)
             mWorkerHandler.removeCallbacksAndMessages(null);
     }
+
     private Runnable UIFreshRunnable = new Runnable() {
         @Override
         public void run() {

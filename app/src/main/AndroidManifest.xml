@@ -21,6 +21,13 @@
             </intent-filter>
         </receiver>
 
+        <!--线控-->
+        <receiver android:name="com.braincs.attrsc.musicplayer.MusicPlayerService$MediaButtonReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON"/>
+            </intent-filter>
+        </receiver>
+
         <activity android:name=".MusicPlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

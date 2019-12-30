@@ -35,23 +35,29 @@ public class NotificationView implements MusicPlayerNotificationView {
         this.context = context;
         notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         notificationView = new RemoteViews(context.getPackageName(), R.layout.layout_music_notification_bar);
+        // 启动 activity 的 intent
         contentIntent = PendingIntent.getActivity(context, 0,
                 new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
+
+        // intent点击按键的广播事件
         Intent intentPlayPause = new Intent(context, MusicPlayerActivity.NotificationReceiver.class);
         intentPlayPause.setAction("PLAY_PAUSE");
         intentPlayPause.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingPlayPauseIntent = PendingIntent.getBroadcast(context, 0, intentPlayPause, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // intent点击按键的广播事件
         Intent intentNext = new Intent(context, MusicPlayerActivity.NotificationReceiver.class);
         intentNext.setAction("NEXT");
         intentNext.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingNextIntent = PendingIntent.getBroadcast(context, 1, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // intent点击按键的广播事件
         Intent intentPrevious = new Intent(context, MusicPlayerActivity.NotificationReceiver.class);
         intentPrevious.setAction("PREVIOUS");
         intentPrevious.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingPreviousIntent = PendingIntent.getBroadcast(context, 2, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        // 绑定 intent点击按键的广播事件
         notificationView.setOnClickPendingIntent(R.id.noti_player_play, pendingPlayPauseIntent);
         notificationView.setOnClickPendingIntent(R.id.noti_player_previous, pendingPreviousIntent);
         notificationView.setOnClickPendingIntent(R.id.noti_player_next, pendingNextIntent);

@@ -31,6 +31,7 @@ public class MusicPlayerPresenter implements BasePresenter{
     private MusicPlayerService mService;
     private MusicPlayerModel mModel;
     private boolean isBound = false;
+    private volatile boolean isSeekBarFromUser;
     private Intent serviceIntent;
     private Timer timer;
 
@@ -111,7 +112,8 @@ public class MusicPlayerPresenter implements BasePresenter{
                 mService = ((MusicPlayerService.PlayerBinder) service).getService();
                 mService.setStateListener(mStateListener);
 
-                mNotificationView.displayNotification();
+                Notification notification = mNotificationView.displayNotification();
+                bindForegroundService(NotificationView.NOTIFICATION_ID, notification);
 
                 isBound = true;
                 // update ui
@@ -161,6 +163,22 @@ public class MusicPlayerPresenter implements BasePresenter{
 
     }
 
+    public boolean isSeekBarFromUser() {
+        return isSeekBarFromUser;
+    }
+
+    /**
+     * update seekbar progress if fromUser
+     * @param progress progress
+     * @param fromUser is touched by user
+     */
+    public void updateSeekBarFromUser(int progress, boolean fromUser){
+        isSeekBarFromUser = fromUser;
+        if (isSeekBarFromUser) {
+            mModel.setCurrentPosition(progress);
+        }
+    }
+
     private void updateControlState(boolean isPlaying){
         if (isPlaying){
             mModel.setState(MusicPlayerModel.STATE_PLAYING);
@@ -183,7 +201,10 @@ public class MusicPlayerPresenter implements BasePresenter{
             mModel.setCurrentPosition(currentPosition);
             mModel.setTotalDuration(totalDuration);
             SpUtil.putObject(mView.getContext(), mModel);
-            mView.updateProgress(currentPosition, totalDuration);
+//            Log.d(TAG, "isSeekBarFromUser = " + isSeekBarFromUser);
+            if (!isSeekBarFromUser) {
+                mView.updateProgress(currentPosition, totalDuration);
+            }
         }
 
         @Override

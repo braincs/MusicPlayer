@@ -53,10 +53,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
-    private PendingIntent contentIntent;
-    private RemoteViews notificationView;
-    private NotificationCompat.Builder notificationBuilder;
-    private NotificationManager notificationManager;
+//    private PendingIntent contentIntent;
+//    private RemoteViews notificationView;
+//    private NotificationCompat.Builder notificationBuilder;
+//    private NotificationManager notificationManager;
 
     public static class NotificationReceiver extends BroadcastReceiver {
 
@@ -224,66 +224,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         dialog.show();
     }
 
-    //region Notification
-    private void initNotification(){
-        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        notificationView = new RemoteViews(getPackageName(), R.layout.layout_music_notification_bar);
-        contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
-        Intent intentPlayPause = new Intent(this, MusicPlayerActivity.NotificationReceiver.class);
-        intentPlayPause.setAction("PLAY_PAUSE");
-        intentPlayPause.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingPlayPauseIntent = PendingIntent.getBroadcast(this, 0, intentPlayPause, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        Intent intentNext = new Intent(this, MusicPlayerActivity.NotificationReceiver.class);
-        intentNext.setAction("NEXT");
-        intentNext.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingNextIntent = PendingIntent.getBroadcast(this, 1, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        Intent intentPrevious = new Intent(this, MusicPlayerActivity.NotificationReceiver.class);
-        intentPrevious.setAction("PREVIOUS");
-        intentPrevious.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingPreviousIntent = PendingIntent.getBroadcast(this, 2, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        notificationView.setOnClickPendingIntent(R.id.noti_player_play, pendingPlayPauseIntent);
-        notificationView.setOnClickPendingIntent(R.id.noti_player_previous, pendingPreviousIntent);
-        notificationView.setOnClickPendingIntent(R.id.noti_player_next, pendingNextIntent);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, "MusicPlayerService", NotificationManager.IMPORTANCE_NONE);
-//            chan.setLightColor(Color.BLUE);
-//            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
-//            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//            assert manager != null;
-//            manager.createNotificationChannel(chan);
-//        }
-    }
-//
-//    private void startMyOwnForeground(){
-//        notificationBuilder = new NotificationCompat.Builder(this);
-//        Notification notification = notificationBuilder.setOngoing(true)
-//                .setSmallIcon(R.drawable.player_icon)
-//                .setContentTitle("App is running in background")
-//                .setCategory(Notification.CATEGORY_SERVICE)
-//                .setContentIntent(contentIntent)
-//                .setContent(notificationView)
-//                .build();
-//        presenter.bindForegroundService(NOTIFICATION_ID, notification);
-//    }
-//
-//    @RequiresApi(api = Build.VERSION_CODES.O)
-//    private void startMyOwnForeground8_0(){
-//        notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
-//        Notification notification = notificationBuilder.setOngoing(true)
-//                .setSmallIcon(R.drawable.player_icon)
-//                .setContentTitle("App is running in background")
-//                .setPriority(NotificationManager.IMPORTANCE_MAX)
-//                .setCategory(Notification.CATEGORY_SERVICE)
-//                .setContentIntent(contentIntent)
-//                .setContent(notificationView)
-//                .build();
-//        presenter.bindForegroundService(NOTIFICATION_ID, notification);
-//    }
-    //endregion
 
     //region Click Listener
     private View.OnClickListener drawerHeaderViewOnClickListener = new View.OnClickListener() {
@@ -325,18 +265,24 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//            Log.d(TAG, "--onProgressChanged--" +"progress = " + progress + ", fromuser = " + fromUser);
+            presenter.updateSeekBarFromUser(progress, fromUser);
 
         }
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
-
+//            Log.d(TAG, "--onStartTrackingTouch--");
+//            isSeekBarTouching = true;
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             Log.d(TAG, "seek to: " + seekBar.getProgress());
+            presenter.updateSeekBarFromUser(seekBar.getProgress(),false);
             presenter.seekTo(seekBar.getProgress());
+
+//            isSeekBarTouching = false;
         }
     };
 

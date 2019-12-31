@@ -68,6 +68,7 @@ public class MusicPlayerModel {
 
     public int next(){
         currentIndex ++;
+        currentPosition = 0;
         if (currentIndex >= musicList.size()){
             currentIndex = 0;
         }
@@ -76,6 +77,7 @@ public class MusicPlayerModel {
 
     public int previous(){
         currentIndex --;
+        currentPosition = 0;
         if (currentIndex <= 0){
             currentIndex = musicList.size() -1;
         }

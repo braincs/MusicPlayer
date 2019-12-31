@@ -49,7 +49,7 @@ public class MusicPlayerService extends Service {
     private MediaSessionCompat mMediaSession;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
-    public class MediaButtonReceiver extends BroadcastReceiver{
+    public static class MediaButtonReceiver extends BroadcastReceiver{
 
         @Override
         public void onReceive(Context context, Intent intent) {

@@ -2,29 +2,24 @@ package com.braincs.attrsc.musicplayer;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.RemoteViews;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,12 +28,9 @@ import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
-import com.braincs.attrsc.musicplayer.view.MusicPlayerView;
 
 public class MusicPlayerActivity extends AppCompatActivity implements MusicPlayerActivityView {
     private final static String TAG = MusicPlayerActivity.class.getSimpleName();
-    private final static String NOTIFICATION_CHANNEL_ID = "braincs.MusicPlayerService";
-    private final static int NOTIFICATION_ID = 1;
 
     private Context context;
     private ImageButton btnPlayerPlay;
@@ -53,6 +45,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
+    private RecyclerView.SmoothScroller smoothScroller;
 //    private PendingIntent contentIntent;
 //    private RemoteViews notificationView;
 //    private NotificationCompat.Builder notificationBuilder;
@@ -110,6 +103,11 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     private void initModelAdapter(){
+        smoothScroller = new LinearSmoothScroller(context) {
+            @Override protected int getVerticalSnapPreference() {
+                return LinearSmoothScroller.SNAP_TO_START;
+            }
+        };
         modelAdapter = new MusicPlayerModelAdapter(model, musicListOnClickListener);
         lvMusic.setAdapter(modelAdapter);
     }
@@ -132,6 +130,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         tvTime = findViewById(R.id.tv_music_curpos);
         tvDuration = findViewById(R.id.tv_music_duration);
         tvMusicName = findViewById(R.id.tv_music_name);
+        tvMusicName.setOnClickListener(playerClickListener);
 
         //progress bar
         pbMusic = findViewById(R.id.pb_music);
@@ -324,6 +323,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     presenter.next();
 
                     break;
+
+                case R.id.tv_music_name:
+                    presenter.scrollToCurrent();
+                    break;
                 default:
                     break;
             }
@@ -392,5 +395,15 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     public void setFreshing(boolean isFreshing) {
         mSwipeRefreshLayout.setRefreshing(isFreshing);
+    }
+
+    @Override
+    public void scrollTo(int position){
+        RecyclerView.LayoutManager layoutManager = lvMusic.getLayoutManager();
+
+        smoothScroller.setTargetPosition(position);
+        if (layoutManager != null) {
+            layoutManager.startSmoothScroll(smoothScroller);
+        }
     }
 }

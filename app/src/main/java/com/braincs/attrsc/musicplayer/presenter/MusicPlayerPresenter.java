@@ -165,6 +165,10 @@ public class MusicPlayerPresenter implements BasePresenter{
 
     }
 
+    public void scrollToCurrent(){
+        mView.scrollTo(mModel.getCurrentIndex());
+    }
+
     public boolean isSeekBarFromUser() {
         return isSeekBarFromUser;
     }

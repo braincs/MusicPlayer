@@ -1,28 +1,19 @@
 package com.braincs.attrsc.musicplayer;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -31,6 +22,7 @@ import android.widget.Toast;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -55,7 +47,6 @@ public class MusicPlayerService extends Service {
     private Handler mWorkerHandler;
     private boolean isPlaying = false;
     private MediaSessionCompat mMediaSession;
-    private MusicPlayerModel mModel;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
     public class MediaButtonReceiver extends BroadcastReceiver{
@@ -272,17 +263,20 @@ public class MusicPlayerService extends Service {
         @Override
         public void onCompletion(MediaPlayer mp) {
             Log.d(TAG, "--OnCompletionListener--");
+            // fresh current state
+            currentPosition = 0;
             currentIndex++;
             if (currentIndex >= musicList.size()) {
                 currentIndex = 0;
             }
-            playList();
+            playList(musicList, currentIndex);
         }
     };
 
     //endregion
 
 
+    @Deprecated
     public int play(String mp3Path) {
         try {
             // need to reset before setDataSource, otherwise IllegalStateException
@@ -310,7 +304,8 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    private void startPlayer() {
+    private void startPlayerFreshUITask() {
+        stopFreshUI();
         try {
             mediaPlayer.prepare();
         } catch (IOException e) {
@@ -322,7 +317,6 @@ public class MusicPlayerService extends Service {
             public void onPrepared(MediaPlayer mp) {
                 seek(currentPosition);
                 mediaPlayer.start();
-                stopFreshUI();
                 startFreshUI();
                 isPlaying = true;
             }
@@ -330,13 +324,20 @@ public class MusicPlayerService extends Service {
     }
 
     public int getCurrentPosition() {
-        if (!isPlaying)return 0;
+//        if (!isPlaying)return 0;
         return mediaPlayer.getCurrentPosition();
     }
 
     public int getTotalDuration(){
-        if (!isPlaying)return 0;
+//        if (!isPlaying)return 0;
         return mediaPlayer.getDuration();
+    }
+
+    public void play(MusicPlayerModel model){
+        currentIndex = model.getCurrentIndex();
+        currentPosition = model.getCurrentPosition();
+        musicList = model.getMusicList();
+        playList(musicList, currentIndex, currentPosition);
     }
 
     public void pause() {
@@ -350,18 +351,40 @@ public class MusicPlayerService extends Service {
         musicList = list;
     }
 
+    private void playList(List<String> list, int index , int position) {
+        if (list.size() < 0 || index >= list.size()) throw new Error("args error: index: " + index + ", list size: " + list.size());
+        musicList = list;
+        currentIndex = index;
+        currentPosition = position;
+
+        if (!updateDataSource(musicList.get(currentIndex))) return;
+        startPlayerFreshUITask();
+    }
+    private void playList(List<String> list, int index) {
+        if (list.size() < 0 || index >= list.size()) throw new Error("args error: index: " + index + ", list size: " + list.size());
+        musicList = list;
+        currentIndex = index;
+
+        if (!updateDataSource(musicList.get(currentIndex))) return;
+        startPlayerFreshUITask();
+    }
+
+    /**
+     * start playing music
+     *  data sync from Model {@link MusicPlayerModel}
+     */
     private void playList() {
         if (musicList == null || musicList.size() < 1) {
             // sync with model
             if (!syncPlayerWithModel()) return;
         }
         if (!updateDataSource(musicList.get(currentIndex))) return;
-        startPlayer();
+        startPlayerFreshUITask();
     }
 
     // 只在最初创建时候与模型同步
     private boolean syncPlayerWithModel(){
-        mModel = SpUtil.getObject(mContext, MusicPlayerModel.class);
+        MusicPlayerModel mModel = SpUtil.getObject(mContext, MusicPlayerModel.class);
         if (mModel == null) return false;
         musicList = mModel.getMusicList();
         if (musicList.size() < 1) return false;
@@ -370,15 +393,7 @@ public class MusicPlayerService extends Service {
         return true;
     }
 
-    public void playList(List<String> list, int index) {
-        musicList = list;
-        currentIndex = index;
-        if (list.size() > 0 ) {
-            if (!updateDataSource(musicList.get(currentIndex))) return;
-            startPlayer();
-            startFreshUI();
-        }
-    }
+
 
     public void setStateListener(MServiceStateListener stateListener) {
         this.stateListener = stateListener;
@@ -407,17 +422,20 @@ public class MusicPlayerService extends Service {
     }
 
     private void stopFreshUI(){
-        if (mWorkerHandler != null)
+        if (mWorkerHandler != null) {
+            Log.d(TAG, "--removeCallbacksAndMessages--");
+            mWorkerHandler.removeCallbacks(UIFreshRunnable);
             mWorkerHandler.removeCallbacksAndMessages(null);
+        }
     }
 
     private Runnable UIFreshRunnable = new Runnable() {
         @Override
         public void run() {
             if (null != stateListener) {
-//                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + getCurrentPosition() + ", totalDuration: " + getTotalDuration());
+                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + getCurrentPosition() + ", totalDuration: " + getTotalDuration());
                 // pause 时，position = 0
-                if (isPlaying)
+//                if (isPlaying)
                     currentPosition = getCurrentPosition();
                 stateListener.onStateUpdate(isPlaying, currentPosition, getTotalDuration());
                 // update current position

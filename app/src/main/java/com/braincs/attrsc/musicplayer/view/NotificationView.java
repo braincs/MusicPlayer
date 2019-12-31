@@ -1,6 +1,7 @@
 package com.braincs.attrsc.musicplayer.view;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -21,6 +22,7 @@ import static android.content.Context.NOTIFICATION_SERVICE;
  * 28/12/2019.
  */
 public class NotificationView implements MusicPlayerNotificationView {
+    private final static String TAG = NotificationView.class.getSimpleName();
     public final static String NOTIFICATION_CHANNEL_ID = "braincs.MusicPlayerService";
     public final static int NOTIFICATION_ID = 1;
 
@@ -117,6 +119,14 @@ public class NotificationView implements MusicPlayerNotificationView {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private Notification startMyOwnForeground8_0() {
+        // solve bug: No Channel found
+        NotificationChannel mChannel = notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
+        if (mChannel == null) {
+            mChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, TAG, NotificationManager.IMPORTANCE_HIGH);
+            mChannel.enableVibration(true);
+            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            notificationManager.createNotificationChannel(mChannel);
+        }
         notificationBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.player_icon)

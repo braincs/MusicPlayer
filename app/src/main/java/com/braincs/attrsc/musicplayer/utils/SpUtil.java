@@ -19,7 +19,7 @@ public class SpUtil {
     private static final String DEFAULT_SP_NAME = "default_sp";
 
     // 通过类名字去获取一个对象
-    public static <T> T getObject(Context context, Class<T> clazz) {
+    public static synchronized <T> T getObject(Context context, Class<T> clazz) {
         String key = getKey(clazz);
         String json = getString(context, key, null);
         if (TextUtils.isEmpty(json)) {
@@ -54,7 +54,7 @@ public class SpUtil {
      * @param context
      * @param object
      */
-    public static void putObject(Context context, Object object) {
+    public static synchronized void putObject(Context context, Object object) {
         String key = getKey(object.getClass());
         Gson gson = new Gson();
         String json = gson.toJson(object);

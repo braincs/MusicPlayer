@@ -133,7 +133,7 @@ public class MusicPlayerPresenter implements BasePresenter{
     }
     public void play(){
         updateControlState(true);
-        mService.playList(mModel.getMusicList(), mModel.getCurrentIndex());
+        mService.play(mModel);
     }
     public void pause(){
         updateControlState(false);
@@ -146,12 +146,14 @@ public class MusicPlayerPresenter implements BasePresenter{
     }
 
     public void next(){
-        mService.playList(mModel.getMusicList(), mModel.next());
+        mModel.next();
+        mService.play(mModel);
         syncUIwithModel();
     }
 
     public void previous(){
-        mService.playList(mModel.getMusicList(), mModel.previous());
+        mModel.previous();
+        mService.play(mModel);
         syncUIwithModel();
     }
 

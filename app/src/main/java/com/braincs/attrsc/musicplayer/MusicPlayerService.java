@@ -269,7 +269,9 @@ public class MusicPlayerService extends Service {
             if (currentIndex >= musicList.size()) {
                 currentIndex = 0;
             }
-            playList(musicList, currentIndex);
+            // seekTo when stop will trigger onCompletion
+            if (isPlaying)
+                playList(musicList, currentIndex);
         }
     };
 

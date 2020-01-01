@@ -140,7 +140,7 @@ public class NotificationView implements MusicPlayerNotificationView {
                 .setPriority(NotificationManager.IMPORTANCE_NONE)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setContentIntent(contentIntent)
-                .setContent(notificationView)
+                .setCustomBigContentView(notificationView)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .setOnlyAlertOnce(true) // 只提示一次
                 .setDefaults(NotificationCompat.DEFAULT_LIGHTS |NotificationCompat.DEFAULT_SOUND)

@@ -113,6 +113,9 @@ public class NotificationView implements MusicPlayerNotificationView {
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setContentIntent(contentIntent)
                 .setContent(notificationView)
+                .setOnlyAlertOnce(true) // 只提示一次
+                .setDefaults(NotificationCompat.DEFAULT_LIGHTS |NotificationCompat.DEFAULT_SOUND)
+                .setVibrate(new long[]{0})
                 .build();
         return notification;
     }
@@ -122,19 +125,26 @@ public class NotificationView implements MusicPlayerNotificationView {
         // solve bug: No Channel found
         NotificationChannel mChannel = notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID);
         if (mChannel == null) {
-            mChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, TAG, NotificationManager.IMPORTANCE_HIGH);
-            mChannel.enableVibration(true);
-            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+            mChannel = new NotificationChannel(NOTIFICATION_CHANNEL_ID, TAG, NotificationManager.IMPORTANCE_LOW);
+            mChannel.setShowBadge(false);
+            mChannel.enableLights(false);
+            mChannel.enableVibration(false);
+            mChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);//设置锁屏是否显示通知
+            mChannel.setVibrationPattern(new long[]{0});//new long[]{0, 100, 200, 300, 400, 500, 400, 300, 200, 400}
             notificationManager.createNotificationChannel(mChannel);
         }
         notificationBuilder = new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.player_icon)
                 .setContentTitle("App is running in background")
-                .setPriority(NotificationManager.IMPORTANCE_MAX)
+                .setPriority(NotificationManager.IMPORTANCE_NONE)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setContentIntent(contentIntent)
                 .setContent(notificationView)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setOnlyAlertOnce(true) // 只提示一次
+                .setDefaults(NotificationCompat.DEFAULT_LIGHTS |NotificationCompat.DEFAULT_SOUND)
+                .setVibrate(new long[]{0})
                 .build();
         return notification;
     }

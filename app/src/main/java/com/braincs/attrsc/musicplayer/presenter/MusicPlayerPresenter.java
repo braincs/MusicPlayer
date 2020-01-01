@@ -203,7 +203,8 @@ public class MusicPlayerPresenter implements BasePresenter{
 //            Log.d(TAG, "isPlaying: " + isPlaying +", currentPosition: "+ currentPosition + ", totalDuration: "+totalDuration);
             updateControlState(isPlaying);
 
-            if (!isPlaying) return; //paused position and duration may 0
+//            if (!isPlaying) return; //paused position and duration may 0
+            mModel.setState(isPlaying? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE);
             mModel.setCurrentPosition(currentPosition);
             mModel.setTotalDuration(totalDuration);
             SpUtil.putObject(mView.getContext(), mModel);

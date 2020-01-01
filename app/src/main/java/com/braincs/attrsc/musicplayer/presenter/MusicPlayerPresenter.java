@@ -73,8 +73,9 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
     }
 
-    public void playList(int position){
-        mModel.setCurrentIndex(position);
+    public void playList(int index){
+        mModel.setCurrentIndex(index);
+        mModel.setCurrentPosition(0);
         play();
         syncUIwithModel();
     }
@@ -84,7 +85,7 @@ public class MusicPlayerPresenter implements BasePresenter{
         if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
             pause();
         }else {
-            playAndSeek();
+            play();
         }
     }
     private void startService() {
@@ -127,6 +128,10 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
     };
 
+    /**
+     *  @deprecated  playAndSeek: use {@link #play()}
+     */
+    @Deprecated
     public void playAndSeek(){
         play();
         mService.seek(mModel.getCurrentPosition());

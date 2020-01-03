@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES"/>
 
     <application
         android:allowBackup="true"
@@ -18,6 +19,7 @@
                 <action android:name="PLAY_PAUSE" />
                 <action android:name="NEXT" />
                 <action android:name="PREVIOUS" />
+                <action android:name="PLAYER_CLOSE" />
             </intent-filter>
         </receiver>
 

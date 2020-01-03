@@ -62,6 +62,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 presenter.next();
             }else if (intent.getAction().equalsIgnoreCase("PREVIOUS")){
                 presenter.previous();
+            }else if (intent.getAction().equalsIgnoreCase("PLAYER_CLOSE")){
+                presenter.shutdown();
             }
         }
     }

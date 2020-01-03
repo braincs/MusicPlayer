@@ -142,7 +142,6 @@ public class MusicPlayerService extends Service {
         audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
-        audioManager.abandonAudioFocus(focusChangeListener);
 
         mediaPlayer.setOnCompletionListener(completeListener);
 
@@ -246,6 +245,9 @@ public class MusicPlayerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "--onDestroy--");
+
+        //Give up the audio focus.
+        audioManager.abandonAudioFocus(focusChangeListener);
 
         releaseHanlder();
     }

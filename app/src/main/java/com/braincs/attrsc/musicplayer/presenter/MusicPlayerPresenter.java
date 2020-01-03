@@ -1,14 +1,17 @@
 package com.braincs.attrsc.musicplayer.presenter;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.braincs.attrsc.musicplayer.MusicPlayerActivity;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
@@ -170,6 +173,26 @@ public class MusicPlayerPresenter implements BasePresenter{
 
     }
 
+    /**
+     * manually shutdown
+     */
+    public void shutdown(){
+        pause();
+        if (null != mService && isBound){
+            mService.setStateListener(null);
+
+        }
+        onStop();
+
+        if (null != mView && null != mView.getContext()){
+            mView.getContext().stopService(new Intent(mView.getContext(), MusicPlayerService.class));
+            ActivityManager am = (ActivityManager) mView.getContext().getSystemService (Context.ACTIVITY_SERVICE);
+            am.killBackgroundProcesses(mView.getContext().getPackageName());
+            System.exit(0);
+        }
+
+
+    }
     public void scrollToCurrent(){
         mView.scrollTo(mModel.getCurrentIndex());
     }
@@ -262,6 +285,7 @@ public class MusicPlayerPresenter implements BasePresenter{
 
     @Override
     public void onStop() {
-        unBindService();
+        if (isBound)
+            unBindService();
     }
 }

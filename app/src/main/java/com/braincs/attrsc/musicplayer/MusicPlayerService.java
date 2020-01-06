@@ -327,6 +327,10 @@ public class MusicPlayerService extends Service {
         });
     }
 
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
     public int getCurrentPosition() {
 //        if (!isPlaying)return 0;
         return mediaPlayer.getCurrentPosition();

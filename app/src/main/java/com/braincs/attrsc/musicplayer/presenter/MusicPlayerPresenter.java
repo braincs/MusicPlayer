@@ -256,6 +256,10 @@ public class MusicPlayerPresenter implements BasePresenter{
         return isBound;
     }
 
+    public boolean isPlaying(){
+        return isBound && mService.isPlaying();
+    }
+
     public void scanMusic() {
         mView.setFreshing(true);
         mModel.scanMusic();

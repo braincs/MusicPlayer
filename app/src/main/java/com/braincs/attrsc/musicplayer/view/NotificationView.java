@@ -57,12 +57,19 @@ public class NotificationView implements MusicPlayerNotificationView {
         Intent intentPrevious = new Intent(context, MusicPlayerActivity.NotificationReceiver.class);
         intentPrevious.setAction("PREVIOUS");
         intentPrevious.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingPreviousIntent = PendingIntent.getBroadcast(context, 2, intentNext, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingPreviousIntent = PendingIntent.getBroadcast(context, 2, intentPrevious, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // intent点击按键的广播事件
+        Intent intentClose = new Intent(context, MusicPlayerActivity.NotificationReceiver.class);
+        intentClose.setAction("PLAYER_CLOSE");
+        intentClose.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(context, 3, intentClose, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // 绑定 intent点击按键的广播事件
         notificationView.setOnClickPendingIntent(R.id.noti_player_play, pendingPlayPauseIntent);
         notificationView.setOnClickPendingIntent(R.id.noti_player_previous, pendingPreviousIntent);
         notificationView.setOnClickPendingIntent(R.id.noti_player_next, pendingNextIntent);
+        notificationView.setOnClickPendingIntent(R.id.noti_btn_close, pendingCloseIntent);
     }
 
     @Override

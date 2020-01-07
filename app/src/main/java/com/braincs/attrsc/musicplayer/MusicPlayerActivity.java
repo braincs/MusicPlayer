@@ -175,7 +175,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        presenter.onStop();
     }
 
     private void getPermissions() {

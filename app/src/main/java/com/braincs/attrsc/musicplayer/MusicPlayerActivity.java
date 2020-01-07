@@ -47,7 +47,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
     private RecyclerView.SmoothScroller smoothScroller;
-    private NotificationReceiver myReceiver;
 //    private PendingIntent contentIntent;
 //    private RemoteViews notificationView;
 //    private NotificationCompat.Builder notificationBuilder;
@@ -66,20 +65,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 presenter.previous();
             }else if (intent.getAction().equalsIgnoreCase("PLAYER_CLOSE")){
                 presenter.shutdown();
-            }else if (intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)){
-                int state = intent.getIntExtra("state", -1);
-                switch (state) {
-                    case 0:
-                        Log.d(TAG, "Headset is unplugged");
-                        if (presenter.isPlaying())
-                            presenter.pause();
-                        break;
-                    case 1:
-                        Log.d(TAG, "Headset is plugged");
-                        break;
-                    default:
-                        Log.d(TAG, "I have no idea what the headset state is");
-                }
             }
         }
     }
@@ -100,7 +85,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
         initModelAdapter();
 
-        myReceiver = new NotificationReceiver();
     }
 
     private void initModelPresenter() {
@@ -179,8 +163,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onResume() {
         super.onResume();
-        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
-        registerReceiver(myReceiver, filter);
         presenter.onResume();
     }
 
@@ -193,8 +175,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(myReceiver);
-        presenter.onStop();
     }
 
     private void getPermissions() {

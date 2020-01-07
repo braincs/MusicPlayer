@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
+import com.braincs.attrsc.musicplayer.presenter.BasePresenter;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class MusicPlayerService extends Service {
     private Handler mWorkerHandler;
     private boolean isPlaying = false;
     private MediaSessionCompat mMediaSession;
+    private BasePresenter mPresenter;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
     public static class MediaButtonReceiver extends BroadcastReceiver{
@@ -245,7 +247,9 @@ public class MusicPlayerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "--onDestroy--");
-
+        if (mPresenter != null) {
+            mPresenter.onStop();
+        }
         //Give up the audio focus.
         audioManager.abandonAudioFocus(focusChangeListener);
 
@@ -346,6 +350,10 @@ public class MusicPlayerService extends Service {
         currentPosition = model.getCurrentPosition();
         musicList = model.getMusicList();
         playList(musicList, currentIndex, currentPosition);
+    }
+
+    public void setPresenter(BasePresenter presenter){
+        this.mPresenter = presenter;
     }
 
     public void pause() {

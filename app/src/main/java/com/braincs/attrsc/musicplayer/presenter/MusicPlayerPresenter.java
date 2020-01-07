@@ -7,13 +7,14 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.braincs.attrsc.musicplayer.MusicPlayerActivity;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
+import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
@@ -37,6 +38,7 @@ public class MusicPlayerPresenter implements BasePresenter{
     private volatile boolean isSeekBarFromUser;
     private Intent serviceIntent;
     private Timer timer;
+    private static HeadSetReceiver mHeadSetReceiver;
 
 
     public MusicPlayerPresenter(MusicPlayerActivityView mView, MusicPlayerModel model) {
@@ -44,6 +46,8 @@ public class MusicPlayerPresenter implements BasePresenter{
         this.mModel = model;
         this.mNotificationView = new NotificationView(mView.getContext());
         timer = new Timer("stopTimer");
+
+        mHeadSetReceiver = new HeadSetReceiver(this);
     }
 
     private void syncUIwithModel() {
@@ -115,6 +119,7 @@ public class MusicPlayerPresenter implements BasePresenter{
             if (service != null) {
                 mService = ((MusicPlayerService.PlayerBinder) service).getService();
                 mService.setStateListener(mStateListener);
+                mService.setPresenter(MusicPlayerPresenter.this);
 
                 Notification notification = mNotificationView.displayNotification();
                 bindForegroundService(NotificationView.NOTIFICATION_ID, notification);
@@ -131,6 +136,14 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
     };
 
+    private void registerHeadsetReceiver(){
+        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        mView.getContext().registerReceiver(mHeadSetReceiver, filter);
+    }
+
+    private void unregisterHeadsetReceiver(){
+        mView.getContext().unregisterReceiver(mHeadSetReceiver);
+    }
     /**
      *  @deprecated  playAndSeek: use {@link #play()}
      */
@@ -280,6 +293,7 @@ public class MusicPlayerPresenter implements BasePresenter{
     @Override
     public void onResume() {
         startService();
+        registerHeadsetReceiver();
     }
 
     @Override
@@ -291,5 +305,6 @@ public class MusicPlayerPresenter implements BasePresenter{
     public void onStop() {
         if (isBound)
             unBindService();
+        unregisterHeadsetReceiver();
     }
 }

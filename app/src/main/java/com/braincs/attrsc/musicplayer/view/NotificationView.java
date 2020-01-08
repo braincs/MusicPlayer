@@ -39,7 +39,7 @@ public class NotificationView implements MusicPlayerNotificationView {
         notificationView = new RemoteViews(context.getPackageName(), R.layout.layout_music_notification_bar);
         // 启动 activity 的 intent
         contentIntent = PendingIntent.getActivity(context, 0,
-                new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_ONE_SHOT);
+                new Intent(context, MusicPlayerActivity.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
         // intent点击按键的广播事件
         Intent intentPlayPause = new Intent(context, MusicPlayerActivity.NotificationReceiver.class);

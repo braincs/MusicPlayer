@@ -30,7 +30,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".MusicPlayerActivity">
+        <activity android:name=".MusicPlayerActivity"
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />

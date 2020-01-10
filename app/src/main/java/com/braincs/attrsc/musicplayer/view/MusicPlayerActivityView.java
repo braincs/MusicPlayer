@@ -11,5 +11,5 @@ import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 public interface MusicPlayerActivityView extends MusicPlayerView {
 
     void setFreshing(boolean isFreshing);
-    void scrollTo(int position);
+    void scrollTo(int position, boolean isSmooth);
 }

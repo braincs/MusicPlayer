@@ -206,8 +206,8 @@ public class MusicPlayerPresenter implements BasePresenter{
 
 
     }
-    public void scrollToCurrent(){
-        mView.scrollTo(mModel.getCurrentIndex());
+    public void scrollToCurrent(boolean isSmooth){
+        mView.scrollTo(mModel.getCurrentIndex(), isSmooth);
     }
 
     public boolean isSeekBarFromUser() {
@@ -294,6 +294,8 @@ public class MusicPlayerPresenter implements BasePresenter{
     public void onResume() {
         startService();
         registerHeadsetReceiver();
+        //update UI
+        scrollToCurrent(false);
     }
 
     @Override

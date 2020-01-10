@@ -328,7 +328,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     break;
 
                 case R.id.tv_music_name:
-                    presenter.scrollToCurrent();
+                    presenter.scrollToCurrent(true);
                     break;
                 default:
                     break;
@@ -401,12 +401,17 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     @Override
-    public void scrollTo(int position){
+    public void scrollTo(int position, boolean isSmooth){
         RecyclerView.LayoutManager layoutManager = lvMusic.getLayoutManager();
 
-        smoothScroller.setTargetPosition(position);
-        if (layoutManager != null) {
-            layoutManager.startSmoothScroll(smoothScroller);
+        if (isSmooth) {
+            smoothScroller.setTargetPosition(position);
+            if (layoutManager != null) {
+                layoutManager.startSmoothScroll(smoothScroller);
+            }
+        }else {
+            if (layoutManager != null)
+                layoutManager.scrollToPosition(position);
         }
     }
 }

@@ -215,7 +215,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 // user clicked OK
+                if (selectedDuration[0] < 1) return;
                 // start timer
+                Toast.makeText(context, "stop after " + selectedDuration[0] + " mins", Toast.LENGTH_SHORT).show();
                 presenter.stopAndFinish(selectedDuration[0]);
             }
         });

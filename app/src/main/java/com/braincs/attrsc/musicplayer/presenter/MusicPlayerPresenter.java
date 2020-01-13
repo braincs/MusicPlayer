@@ -280,7 +280,9 @@ public class MusicPlayerPresenter implements BasePresenter{
         mView.setFreshing(false);
     }
 
-    public void stopAndFinish(int min){
+    public void stopAndFinish(int min) {
+        timer.cancel();
+        timer = new Timer("stopTimer");
         timer.schedule(new TimerTask() {
             @Override
             public void run() {

@@ -224,6 +224,7 @@ public class MusicPlayerPresenter implements BasePresenter{
         isSeekBarFromUser = fromUser;
         if (isSeekBarFromUser) {
             mModel.setCurrentPosition(progress);
+            mView.updateProgress(progress, mModel.getTotalDuration());
         }
     }
 

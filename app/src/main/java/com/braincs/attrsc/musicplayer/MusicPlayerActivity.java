@@ -416,4 +416,18 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 layoutManager.scrollToPosition(position);
         }
     }
+
+    @Override
+    public void updateTimerLeft(final String time) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MenuItem timerItem = navigationView.getMenu().findItem(R.id.menu_timer);
+                if (timerItem != null) {
+                    timerItem.setTitle("Stop Timer   " + time);
+                }
+            }
+        });
+
+    }
 }

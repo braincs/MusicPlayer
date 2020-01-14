@@ -15,6 +15,7 @@ import android.util.Log;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
 import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
+import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
@@ -283,6 +284,7 @@ public class MusicPlayerPresenter implements BasePresenter{
     public void stopAndFinish(int min) {
         timer.cancel();
         timer = new Timer("stopTimer");
+        final long[] remainTime = {min * 60 * 1000};
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -290,7 +292,19 @@ public class MusicPlayerPresenter implements BasePresenter{
                 unBindService();
                 ((Activity)mView.getContext()).finish();
             }
-        },min * 60 * 1000);
+        }, remainTime[0]);
+
+        mService.queueEvent(new Runnable() {
+            @Override
+            public void run() {
+                remainTime[0]-= 1000;
+                if (remainTime[0] < 0)  return;
+                Log.d(TAG, "remain time = " + remainTime[0]);
+                //update ui timer left
+                mView.updateTimerLeft(TimeUtil.int2TimeStr((int) remainTime[0]));
+                mService.queueEvent(this, 1000);
+            }
+        }, 1000);
     }
     @Override
     public void onResume() {

@@ -363,6 +363,10 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    public void queueEvent(Runnable runnable, long delayed){
+        mWorkerHandler.postDelayed(runnable, delayed);
+    }
+
     public void updateMusicList(List<String> list) {
         musicList = list;
     }

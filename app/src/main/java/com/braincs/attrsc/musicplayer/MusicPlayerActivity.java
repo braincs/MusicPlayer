@@ -12,11 +12,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -55,6 +58,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private ImageButton btnPlayerBack;
     private ImageButton btnPlayerForward;
     private ImageButton btnPlayerNext;
+    private Toolbar toolbar;
 
 //    private PendingIntent contentIntent;
 //    private RemoteViews notificationView;
@@ -126,6 +130,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     private void initView() {
+        setToolBar();
+
         //background
         appLayout = findViewById(R.id.app_layout);
 
@@ -501,5 +507,21 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         theme.setIcon(menuTheme);
         theme.setTitle(getCurrentThemeButtonName());
 
+        helper.setToolbarTextColorByAttr(toolbar, R.attr.custom_attr_music_bar_text_color);
+    }
+
+    private void setToolBar() {
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar ab = getSupportActionBar();
+        if (ab == null) return;
+        ab.setHomeAsUpIndicator(R.drawable.toolbar_navigation_list);
+        ab.setDisplayHomeAsUpEnabled(true);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
     }
 }

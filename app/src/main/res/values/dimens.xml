@@ -15,4 +15,6 @@
     <dimen name="custom_dimen_checkbox_thumb_radius">10dp</dimen>
     <dimen name="custom_dimen_item_description_text_size">14dp</dimen>
     <dimen name="custom_dimen_item_title_text_size">18dp</dimen>
+
+    <dimen name="tool_bar_mid">58dp</dimen>
 </resources>

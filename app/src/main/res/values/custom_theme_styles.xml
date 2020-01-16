@@ -25,6 +25,7 @@
 
         <item name="custom_attr_user_photo_alpha">@dimen/custom_float_user_photo_alpha_day</item>
         <item name="custom_attr_user_photo_place_holder">@drawable/custom_drawable_user_photo_place_holder_day</item>
+        <item name="custom_attr_menu_theme">@drawable/menu_theme_day</item>
 
         <item name="custom_attr_nickname_text_color">@color/custom_color_nickname_text_color_day</item>
         <item name="custom_attr_remark_text_color">@color/custom_color_remark_text_color_day</item>
@@ -36,7 +37,7 @@
     <style name="MusicPlayerTheme.Night" >
         <item name="custom_attr_app_bg">@color/custom_color_app_bg_night</item>
         <item name="custom_attr_app_title_layout_bg">@color/custom_color_app_title_layout_bg_night</item>
-        <item name="custom_attr_app_navigation_layout_bg">@color/custom_color_app_navigation_layout_bg_night</item>
+        <item name="custom_attr_app_navigation_layout_bg">@color/SLATEGRAY</item>
         <item name="custom_attr_app_content_layout_bg">@color/custom_color_app_content_layout_bg_night</item>
         <item name="custom_attr_app_content_layout_div_color">@color/custom_color_app_content_layout_div_color_night</item>
 
@@ -53,6 +54,7 @@
 
         <item name="custom_attr_user_photo_alpha">@dimen/custom_float_user_photo_alpha_night</item>
         <item name="custom_attr_user_photo_place_holder">@drawable/custom_drawable_user_photo_place_holder_night</item>
+        <item name="custom_attr_menu_theme">@drawable/menu_theme_night</item>
 
         <item name="custom_attr_nickname_text_color">@color/custom_color_nickname_text_color_night</item>
         <item name="custom_attr_remark_text_color">@color/custom_color_remark_text_color_night</item>

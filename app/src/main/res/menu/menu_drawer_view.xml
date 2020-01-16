@@ -13,20 +13,20 @@
             android:title="Settings" />
 
         <item
-            android:id="@+id/menu_timer"
-            android:icon="@drawable/menu_timer"
-            android:title="Stop Timer" />
+            android:id="@+id/menu_about"
+            android:icon="@drawable/menu_info"
+            android:title="About" />
 
         <item android:title="Other">
             <menu>
                 <item
-                    android:id="@+id/menu_share"
-                    android:icon="@android:drawable/ic_menu_share"
-                    android:title="Share" />
+                    android:id="@+id/menu_timer"
+                    android:icon="@drawable/menu_task_timer"
+                    android:title="Stop Timer" />
                 <item
-                    android:id="@+id/menu_about"
-                    android:icon="@drawable/menu_info"
-                    android:title="About" />
+                    android:id="@+id/menu_theme"
+                    android:icon="@drawable/menu_theme_day"
+                    android:title="Day" />
             </menu>
         </item>
     </group>

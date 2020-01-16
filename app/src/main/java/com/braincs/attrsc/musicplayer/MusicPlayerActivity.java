@@ -6,8 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -264,7 +264,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 //                    Toast.makeText(context, "Timer is clicked!", Toast.LENGTH_SHORT).show();
                     displayTimerSelector();
                     break;
-                case R.id.menu_share:
+                case R.id.menu_theme:
                     themeUpdate();
                     break;
                 case R.id.menu_about:
@@ -490,6 +490,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         helper.setTextColorByAttr(tvMusicName, R.attr.custom_attr_music_bar_text_color);
 //        helper.setTextColorByAttr(mRemark, R.attr.custom_attr_remark_text_color);
 //
-//        mUserPhotoPlaceHolder = helper.getDrawableByAttr(R.attr.custom_attr_user_photo_place_holder);
+        Drawable menuTheme = helper.getDrawableByAttr(R.attr.custom_attr_menu_theme);
+        MenuItem theme = navigationView.getMenu().findItem(R.id.menu_theme);
+        theme.setIcon(menuTheme);
+
     }
 }

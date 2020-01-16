@@ -6,15 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include
+        layout="@layout/layout_toolbar"/>
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/app_layout"
     android:background="?attr/custom_attr_app_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MusicPlayerActivity">
+    android:orientation="vertical">
 
     <android.support.v4.widget.SwipeRefreshLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
@@ -64,12 +68,17 @@
         layout="@layout/layout_music_bar"/>
 
     </RelativeLayout>
+</LinearLayout>
+
     <android.support.design.widget.NavigationView
         android:id="@+id/navigation_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:fitsSystemWindows="true"
         android:background="?attr/custom_attr_app_navigation_layout_bg"
         app:headerLayout="@layout/layout_drawer_header"
         app:menu="@menu/menu_drawer_view" />
+
+
 </android.support.v4.widget.DrawerLayout>

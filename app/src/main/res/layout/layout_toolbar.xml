@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="58dp"
+    android:background="@color/STEELBLUE"
+    android:minWidth="@dimen/tool_bar_mid"
+    app:titleTextColor="?attr/custom_attr_music_bar_text_color">
+
+    <!--<ImageView-->
+        <!--android:id="@+id/toolbar_home"-->
+        <!--android:src="@drawable/toolbar_navigation_list"-->
+        <!--android:padding="@dimen/pad_small"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="match_parent" />-->
+
+    <!--<TextView-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:id="@+id/toolbar_title"-->
+        <!--android:textColor="?attr/custom_attr_music_bar_text_color"-->
+        <!--android:gravity="center"-->
+        <!--android:textSize="@dimen/text_size_large"-->
+        <!--android:textStyle="bold"-->
+        <!--android:text="@string/app_name"-->
+        <!--/>-->
+</android.support.v7.widget.Toolbar>
+

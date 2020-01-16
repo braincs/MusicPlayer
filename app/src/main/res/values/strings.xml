@@ -4,4 +4,9 @@
     <string name="speedup">speedup</string>
     <string name="play">play</string>
     <string name="next">next</string>
+
+    <string name="menu_theme_day">Day</string>
+    <string name="menu_theme_night">Night</string>
+
+
 </resources>

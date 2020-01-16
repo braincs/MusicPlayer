@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
+import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.MarioResourceUtil;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
@@ -49,7 +50,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
     private RecyclerView.SmoothScroller smoothScroller;
-    public static final String SP_KEY_THEME_TAG = "SP_KEY_THEME_TAG";
     private RelativeLayout appLayout;
     private ImageButton btnPlayerPrevious;
     private ImageButton btnPlayerBack;
@@ -265,7 +265,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     displayTimerSelector();
                     break;
                 case R.id.menu_theme:
-                    themeUpdate();
+                    presenter.swapTheme();
                     break;
                 case R.id.menu_about:
                     Toast.makeText(context, "About is clicked!", Toast.LENGTH_SHORT).show();
@@ -448,12 +448,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
     }
 
-    private void switchCurrentThemeTag(){
-        int currentTag = (int) SpUtil.get(context, SP_KEY_THEME_TAG, 1);
-        currentTag = 0 - currentTag;
-        SpUtil.put(context, SP_KEY_THEME_TAG, currentTag);
-
-        switch ((int) SpUtil.get(context, SP_KEY_THEME_TAG, 1)) {
+    private void updateCurrentTheme(){
+        switch ((int) SpUtil.get(context, Constants.SP_KEY_THEME_TAG, 1)) {
             case  1:
                 setTheme(R.style.MusicPlayerTheme_Day);
                 break;
@@ -461,14 +457,23 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 setTheme(R.style.MusicPlayerTheme_Night);
                 break;
         }
-
+        //recreate
     }
 
 
+    private int getCurrentThemeButtonName(){
+        switch ((int) SpUtil.get(context, Constants.SP_KEY_THEME_TAG, 1)) {
+            case  1:
+                return R.string.menu_theme_day;
+            default:
+                return R.string.menu_theme_night;
+        }
+    }
+
     @Override
     public void themeUpdate() {
-        switchCurrentThemeTag();
-        //recreate
+        updateCurrentTheme();
+
         MarioResourceUtil helper = MarioResourceUtil.getInstance(getContext());
         helper.setBackgroundResourceByAttr(appLayout, R.attr.custom_attr_app_bg);
         helper.setBackgroundResourceByAttr(drawerLayout, R.attr.custom_attr_app_bg);
@@ -490,9 +495,11 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         helper.setTextColorByAttr(tvMusicName, R.attr.custom_attr_music_bar_text_color);
 //        helper.setTextColorByAttr(mRemark, R.attr.custom_attr_remark_text_color);
 //
+        //update menu theme button
         Drawable menuTheme = helper.getDrawableByAttr(R.attr.custom_attr_menu_theme);
         MenuItem theme = navigationView.getMenu().findItem(R.id.menu_theme);
         theme.setIcon(menuTheme);
+        theme.setTitle(getCurrentThemeButtonName());
 
     }
 }

@@ -6,8 +6,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,11 +21,14 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
+import com.braincs.attrsc.musicplayer.utils.Constants;
+import com.braincs.attrsc.musicplayer.utils.MarioResourceUtil;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
@@ -47,6 +50,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private NavigationView navigationView;
     private DrawerLayout drawerLayout;
     private RecyclerView.SmoothScroller smoothScroller;
+    private RelativeLayout appLayout;
+    private ImageButton btnPlayerPrevious;
+    private ImageButton btnPlayerBack;
+    private ImageButton btnPlayerForward;
+    private ImageButton btnPlayerNext;
+
 //    private PendingIntent contentIntent;
 //    private RemoteViews notificationView;
 //    private NotificationCompat.Builder notificationBuilder;
@@ -72,7 +81,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context = this.getApplicationContext();
+        context = this; // theme 切换必须使用Activity的上下文
 
         getPermissions();
 
@@ -117,12 +126,15 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     private void initView() {
+        //background
+        appLayout = findViewById(R.id.app_layout);
+
         //button
         btnPlayerPlay = findViewById(R.id.player_play);
-        ImageButton btnPlayerPrevious = findViewById(R.id.player_previous);
-        ImageButton btnPlayerBack = findViewById(R.id.player_back);
-        ImageButton btnPlayerForward = findViewById(R.id.player_forward);
-        ImageButton btnPlayerNext = findViewById(R.id.player_next);
+        btnPlayerPrevious = findViewById(R.id.player_previous);
+        btnPlayerBack = findViewById(R.id.player_back);
+        btnPlayerForward = findViewById(R.id.player_forward);
+        btnPlayerNext = findViewById(R.id.player_next);
 
         btnPlayerPlay.setOnClickListener(playerClickListener);
         btnPlayerPrevious.setOnClickListener(playerClickListener);
@@ -252,8 +264,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 //                    Toast.makeText(context, "Timer is clicked!", Toast.LENGTH_SHORT).show();
                     displayTimerSelector();
                     break;
-                case R.id.menu_share:
-                    Toast.makeText(context, "Share is clicked!", Toast.LENGTH_SHORT).show();
+                case R.id.menu_theme:
+                    presenter.swapTheme();
                     break;
                 case R.id.menu_about:
                     Toast.makeText(context, "About is clicked!", Toast.LENGTH_SHORT).show();
@@ -403,18 +415,23 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     @Override
-    public void scrollTo(int position, boolean isSmooth){
-        RecyclerView.LayoutManager layoutManager = lvMusic.getLayoutManager();
+    public void scrollTo(final int position, final boolean isSmooth){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                RecyclerView.LayoutManager layoutManager = lvMusic.getLayoutManager();
 
-        if (isSmooth) {
-            smoothScroller.setTargetPosition(position);
-            if (layoutManager != null) {
-                layoutManager.startSmoothScroll(smoothScroller);
+                if (isSmooth) {
+                    smoothScroller.setTargetPosition(position);
+                    if (layoutManager != null) {
+                        layoutManager.startSmoothScroll(smoothScroller);
+                    }
+                }else {
+                    if (layoutManager != null)
+                        layoutManager.scrollToPosition(position);
+                }
             }
-        }else {
-            if (layoutManager != null)
-                layoutManager.scrollToPosition(position);
-        }
+        });
     }
 
     @Override
@@ -428,6 +445,61 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 }
             }
         });
+
+    }
+
+    private void updateCurrentTheme(){
+        switch ((int) SpUtil.get(context, Constants.SP_KEY_THEME_TAG, 1)) {
+            case  1:
+                setTheme(R.style.MusicPlayerTheme_Day);
+                break;
+            case -1:
+                setTheme(R.style.MusicPlayerTheme_Night);
+                break;
+        }
+        //recreate
+    }
+
+
+    private int getCurrentThemeButtonName(){
+        switch ((int) SpUtil.get(context, Constants.SP_KEY_THEME_TAG, 1)) {
+            case  1:
+                return R.string.menu_theme_day;
+            default:
+                return R.string.menu_theme_night;
+        }
+    }
+
+    @Override
+    public void themeUpdate() {
+        updateCurrentTheme();
+
+        MarioResourceUtil helper = MarioResourceUtil.getInstance(getContext());
+        helper.setBackgroundResourceByAttr(appLayout, R.attr.custom_attr_app_bg);
+        helper.setBackgroundResourceByAttr(drawerLayout, R.attr.custom_attr_app_bg);
+        helper.setBackgroundResourceByAttr(navigationView, R.attr.custom_attr_app_navigation_layout_bg);
+//        helper.setBackgroundResourceByAttr(mStatusBar, R.attr.custom_attr_app_title_layout_bg);
+//        helper.setBackgroundResourceByAttr(mTitleLayout, R.attr.custom_attr_app_title_layout_bg);
+//
+//        helper.setBackgroundResourceByAttr(tvMusicName, R.attr.custom_attr_btn_bg);
+//        helper.setTextColorByAttr(tvMusicName, R.attr.custom_attr_btn_text_color);
+//        helper.setBackgroundResourceByAttr(mBtnTurnNight, R.attr.custom_attr_btn_bg);
+//        helper.setTextColorByAttr(mBtnTurnNight, R.attr.custom_attr_btn_text_color);
+//
+        helper.setAlphaByAttr(btnPlayerPlay, R.attr.custom_attr_user_photo_alpha);
+        helper.setAlphaByAttr(btnPlayerBack, R.attr.custom_attr_user_photo_alpha);
+        helper.setAlphaByAttr(btnPlayerForward, R.attr.custom_attr_user_photo_alpha);
+        helper.setAlphaByAttr(btnPlayerNext, R.attr.custom_attr_user_photo_alpha);
+        helper.setAlphaByAttr(btnPlayerPrevious, R.attr.custom_attr_user_photo_alpha);
+//
+        helper.setTextColorByAttr(tvMusicName, R.attr.custom_attr_music_bar_text_color);
+//        helper.setTextColorByAttr(mRemark, R.attr.custom_attr_remark_text_color);
+//
+        //update menu theme button
+        Drawable menuTheme = helper.getDrawableByAttr(R.attr.custom_attr_menu_theme);
+        MenuItem theme = navigationView.getMenu().findItem(R.id.menu_theme);
+        theme.setIcon(menuTheme);
+        theme.setTitle(getCurrentThemeButtonName());
 
     }
 }

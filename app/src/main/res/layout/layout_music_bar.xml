@@ -15,6 +15,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:alpha="?attr/custom_attr_user_photo_alpha"
         android:background="@color/TRANSPARENT"
         android:padding="@dimen/pad_small"
         android:scaleType="fitCenter"
@@ -25,6 +26,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:alpha="?attr/custom_attr_user_photo_alpha"
         android:background="@color/TRANSPARENT"
         android:contentDescription="@string/speeddown"
         android:padding="@dimen/pad_small"
@@ -37,6 +39,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:alpha="?attr/custom_attr_user_photo_alpha"
         android:background="@color/TRANSPARENT"
         android:contentDescription="@string/play"
         android:padding="@dimen/pad_small"
@@ -48,6 +51,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:alpha="?attr/custom_attr_user_photo_alpha"
         android:background="@color/TRANSPARENT"
         android:contentDescription="@string/speedup"
         android:padding="@dimen/pad_small"
@@ -60,6 +64,7 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
+        android:alpha="?attr/custom_attr_user_photo_alpha"
         android:background="@color/TRANSPARENT"
         android:contentDescription="@string/next"
         android:padding="@dimen/pad_small"
@@ -71,10 +76,10 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="5"
-        android:textStyle="bold"
+        android:gravity="center"
+        android:textColor="?attr/custom_attr_music_bar_text_color"
         android:textSize="@dimen/text_size_large"
-        android:textColor="@color/WHITE"
-        android:gravity="center" />
+        android:textStyle="bold" />
 
 </LinearLayout>
 

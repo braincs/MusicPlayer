@@ -15,6 +15,7 @@ import android.util.Log;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
 import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
+import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
@@ -307,6 +308,14 @@ public class MusicPlayerPresenter implements BasePresenter{
             }
         }, 1000);
     }
+
+    public void swapTheme() {
+        int currentTag = (int) SpUtil.get(mView.getContext(), Constants.SP_KEY_THEME_TAG, 1);
+        currentTag = 0 - currentTag;
+        SpUtil.put(mView.getContext(), Constants.SP_KEY_THEME_TAG, currentTag);
+        mView.themeUpdate();
+    }
+
     @Override
     public void onResume() {
         startService();

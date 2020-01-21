@@ -316,10 +316,21 @@ public class MusicPlayerPresenter implements BasePresenter{
         mView.themeUpdate();
     }
 
+    public void setHeadSetStatus(int status){
+        SpUtil.put(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, status);
+    }
+
+    public int getHeadSetStatus(){
+        return (int) SpUtil.get(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, 0);
+    }
+    @Override
+    public void onStart() {
+        registerHeadsetReceiver();
+    }
+
     @Override
     public void onResume() {
         startService();
-        registerHeadsetReceiver();
         //update UI
         scrollToCurrent(false);
     }
@@ -333,6 +344,10 @@ public class MusicPlayerPresenter implements BasePresenter{
     public void onStop() {
         if (isBound)
             unBindService();
+    }
+
+    @Override
+    public void onDestory() {
         unregisterHeadsetReceiver();
     }
 }

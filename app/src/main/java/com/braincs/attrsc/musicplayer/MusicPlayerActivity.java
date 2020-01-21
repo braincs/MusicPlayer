@@ -179,6 +179,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     };
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        presenter.onStart();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         presenter.onResume();
@@ -193,6 +199,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        presenter.onDestory();
     }
 
     private void getPermissions() {

@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
+import com.braincs.attrsc.musicplayer.utils.SpUtil;
 
 /**
  * Created by Shuai
@@ -27,11 +28,13 @@ public class HeadSetReceiver extends BroadcastReceiver {
             switch (state) {
                 case 0:
                     Log.d(TAG, "Headset is unplugged");
-                    if (presenter.isPlaying())
+                    if (presenter.isPlaying() && presenter.getHeadSetStatus() == 1)
                         presenter.pause();
+                    presenter.setHeadSetStatus(0);
                     break;
                 case 1:
                     Log.d(TAG, "Headset is plugged");
+                    presenter.setHeadSetStatus(1);
                     break;
                 default:
                     Log.d(TAG, "I have no idea what the headset state is");

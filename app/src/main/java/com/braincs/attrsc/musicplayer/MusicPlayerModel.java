@@ -41,12 +41,8 @@ public class MusicPlayerModel {
 
     public void scanMusic(){
         musicList = MediaUtil.getAllMediaMp3Files(directory);
-        Collections.sort(musicList, new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareToIgnoreCase(o2);
-            }
-        });
+        // sort by integer string
+        Collections.sort(musicList, MediaUtil.integerComparator);
     }
 
     public void setCurrentIndex(int currentIndex) {

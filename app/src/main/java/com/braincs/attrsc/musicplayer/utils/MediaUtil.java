@@ -7,6 +7,8 @@ import android.util.Log;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -67,4 +69,26 @@ public class MediaUtil {
         return files;
 
     }
+
+    public static Comparator integerComparator = new Comparator<String>() {
+        public int compare(String o1, String o2) {
+            // 去掉尾缀 .mp3
+//            String[] split1 = new File(o1).getName().split("\\.");
+//            String[] split2 = new File(o2).getName().split("\\.");
+//            String s1 = Arrays.toString(Arrays.copyOf(split1, split1.length - 1));
+//            String s2 = Arrays.toString(Arrays.copyOf(split2, split2.length - 1));
+            String n1 = new File(o1).getName();
+            String n2 = new File(o2).getName();
+            String s1 = n1.substring(0, n1.lastIndexOf('.'));
+            String s2 = n2.substring(0, n2.lastIndexOf('.'));
+            return extractInt(s1) - extractInt(s2);
+        }
+
+        int extractInt(String s) {
+            String num = s.replaceAll("\\D", "");
+            Log.d(TAG, num);
+            // return 0 if no digits found
+            return num.isEmpty() ? 0 : Integer.parseInt(num.trim());
+        }
+    };
 }

@@ -70,7 +70,7 @@ public class MediaUtil {
 
     }
 
-    public static Comparator integerComparator = new Comparator<String>() {
+    public static Comparator<String> integerComparator = new Comparator<String>() {
         public int compare(String o1, String o2) {
             // 去掉尾缀 .mp3
 //            String[] split1 = new File(o1).getName().split("\\.");

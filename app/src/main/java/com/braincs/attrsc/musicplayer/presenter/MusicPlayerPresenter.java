@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.Service;
+import android.bluetooth.BluetoothHeadset;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -140,7 +142,12 @@ public class MusicPlayerPresenter implements BasePresenter {
     };
 
     private void registerHeadsetReceiver() {
-        IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
+        IntentFilter filter = new IntentFilter();
+        //有线耳机
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+        //监听蓝牙耳机
+        filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+
         mView.getContext().registerReceiver(mHeadSetReceiver, filter);
     }
 

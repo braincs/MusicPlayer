@@ -6,7 +6,13 @@ package com.braincs.attrsc.musicplayer.presenter;
  */
 public interface BasePresenter {
 
+    void onStart();
+
     void onResume();
+
     void onPause();
+
     void onStop();
+
+    void onDestory();
 }

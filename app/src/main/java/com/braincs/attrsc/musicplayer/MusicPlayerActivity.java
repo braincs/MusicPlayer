@@ -69,18 +69,19 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction() ==null) return;
-            if (intent.getAction().equalsIgnoreCase("PLAY_PAUSE")){
+            if (intent.getAction() == null) return;
+            if (intent.getAction().equalsIgnoreCase("PLAY_PAUSE")) {
                 presenter.playControl();
-            }else if (intent.getAction().equalsIgnoreCase("NEXT")){
+            } else if (intent.getAction().equalsIgnoreCase("NEXT")) {
                 presenter.next();
-            }else if (intent.getAction().equalsIgnoreCase("PREVIOUS")){
+            } else if (intent.getAction().equalsIgnoreCase("PREVIOUS")) {
                 presenter.previous();
-            }else if (intent.getAction().equalsIgnoreCase("PLAYER_CLOSE")){
+            } else if (intent.getAction().equalsIgnoreCase("PLAYER_CLOSE")) {
                 presenter.shutdown();
             }
         }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,7 +103,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
     private void initModelPresenter() {
         model = SpUtil.getObject(context, MusicPlayerModel.class);
-        if (model == null){
+        if (model == null) {
             model = new MusicPlayerModel("Music");
             /**
              * Showing Swipe Refresh animation on activity create
@@ -119,9 +120,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         Log.d(TAG, model.toString());
     }
 
-    private void initModelAdapter(){
+    private void initModelAdapter() {
         smoothScroller = new LinearSmoothScroller(context) {
-            @Override protected int getVerticalSnapPreference() {
+            @Override
+            protected int getVerticalSnapPreference() {
                 return LinearSmoothScroller.SNAP_TO_START;
             }
         };
@@ -179,6 +181,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     };
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        presenter.onStart();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         presenter.onResume();
@@ -193,6 +201,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        presenter.onDestory();
     }
 
     private void getPermissions() {
@@ -283,7 +292,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     };
 
 
-
     private SeekBar.OnSeekBarChangeListener onSeekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -301,14 +309,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
             Log.d(TAG, "seek to: " + seekBar.getProgress());
-            presenter.updateSeekBarFromUser(seekBar.getProgress(),false);
+            presenter.updateSeekBarFromUser(seekBar.getProgress(), false);
             presenter.seekTo(seekBar.getProgress());
 
 //            isSeekBarTouching = false;
         }
     };
 
-    private MusicPlayerModelAdapter.OnItemClickListener musicListOnClickListener = new MusicPlayerModelAdapter.OnItemClickListener(){
+    private MusicPlayerModelAdapter.OnItemClickListener musicListOnClickListener = new MusicPlayerModelAdapter.OnItemClickListener() {
 
         @Override
         public void onItemClick(View view, int position) {
@@ -421,7 +429,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     @Override
-    public void scrollTo(final int position, final boolean isSmooth){
+    public void scrollTo(final int position, final boolean isSmooth) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -432,7 +440,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                     if (layoutManager != null) {
                         layoutManager.startSmoothScroll(smoothScroller);
                     }
-                }else {
+                } else {
                     if (layoutManager != null)
                         layoutManager.scrollToPosition(position);
                 }
@@ -454,9 +462,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
 
     }
 
-    private void updateCurrentTheme(){
+    private void updateCurrentTheme() {
         switch ((int) SpUtil.get(context, Constants.SP_KEY_THEME_TAG, 1)) {
-            case  1:
+            case 1:
                 setTheme(R.style.MusicPlayerTheme_Day);
                 break;
             case -1:
@@ -467,9 +475,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
 
-    private int getCurrentThemeButtonName(){
+    private int getCurrentThemeButtonName() {
         switch ((int) SpUtil.get(context, Constants.SP_KEY_THEME_TAG, 1)) {
-            case  1:
+            case 1:
                 return R.string.menu_theme_day;
             default:
                 return R.string.menu_theme_night;
@@ -521,6 +529,23 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            long lastClickTime = -1L;
+            @Override
+            public void onClick(View v) {
+                long clickTime = System.currentTimeMillis();
+                if (lastClickTime != -1 && clickTime - lastClickTime < Constants.DOUBLE_CLICK_TIME_DELTA){
+                    // double clicked
+//                    Log.d(TAG, "--toolbar double clicked--");
+                    presenter.scrollToTop(true);
+                } else {
+                    // single clicked
+
+                }
+                lastClickTime = clickTime;
             }
         });
     }

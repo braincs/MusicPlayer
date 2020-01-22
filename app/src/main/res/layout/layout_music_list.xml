@@ -12,21 +12,21 @@
         android:paddingStart="@dimen/pad_small"
         android:paddingTop="@dimen/pad_small"
         android:paddingEnd="@dimen/pad_small"
-        android:textSize="@dimen/text_size_mid"
-        android:textStyle="bold"
+        android:text="name"
         android:textColor="@color/STEELBLUE"
-        android:text="name"/>
+        android:textSize="@dimen/text_size_mid"
+        android:textStyle="bold" />
 
 
     <TextView
         android:id="@+id/tv_list_path"
-        android:gravity="end"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="end"
         android:padding="@dimen/pad_small"
-        android:textSize="@dimen/text_size_small"
+        android:text="path"
         android:textColor="@color/DIMGRAY"
-        android:text="path"/>
+        android:textSize="@dimen/text_size_small" />
 
 </LinearLayout>
 

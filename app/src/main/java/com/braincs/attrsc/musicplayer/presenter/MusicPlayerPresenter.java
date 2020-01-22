@@ -265,6 +265,7 @@ public class MusicPlayerPresenter implements BasePresenter{
             mModel.setCurrentIndex(index);
             File file = new File(mModel.getMusicList().get(index));
             mView.setMusicBarName(file.getName());
+            mNotificationView.setMusicBarName(file.getName());
         }
     };
 

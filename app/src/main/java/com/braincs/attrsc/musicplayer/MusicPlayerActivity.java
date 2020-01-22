@@ -531,5 +531,22 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            long lastClickTime = -1L;
+            @Override
+            public void onClick(View v) {
+                long clickTime = System.currentTimeMillis();
+                if (lastClickTime != -1 && clickTime - lastClickTime < Constants.DOUBLE_CLICK_TIME_DELTA){
+                    // double clicked
+//                    Log.d(TAG, "--toolbar double clicked--");
+                    presenter.scrollToTop(true);
+                } else {
+                    // single clicked
+
+                }
+                lastClickTime = clickTime;
+            }
+        });
     }
 }

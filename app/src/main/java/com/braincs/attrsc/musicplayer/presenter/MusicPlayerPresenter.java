@@ -213,6 +213,10 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     }
 
+    public void scrollToTop(boolean isSmooth){
+        mView.scrollTo(0, isSmooth);
+    }
+
     public void scrollToCurrent(boolean isSmooth) {
         mView.scrollTo(mModel.getCurrentIndex(), isSmooth);
     }

@@ -51,7 +51,7 @@ public class MusicPlayerService extends Service {
     private BasePresenter mPresenter;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
-    public static class MediaButtonReceiver extends BroadcastReceiver{
+    public static class MediaButtonReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -72,7 +72,7 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    private void initMediaSession(){
+    private void initMediaSession() {
         ComponentName mbr = new ComponentName(getPackageName(), MediaButtonReceiver.class.getName());
         mMediaSession = new MediaSessionCompat(this, TAG, mbr, null);
         /* set flags to handle media buttons */
@@ -96,7 +96,7 @@ public class MusicPlayerService extends Service {
 
                 //避免在Receiver里做长时间的处理，使得程序在CPU使用率过高的情况下出错，把信息发给handlera处理。
                 int keyCode = event.getKeyCode();
-                long eventTime = event.getEventTime()-event.getDownTime();//按键按下到松开的时长
+                long eventTime = event.getEventTime() - event.getDownTime();//按键按下到松开的时长
                 Message msg = Message.obtain();
                 msg.what = 100;
                 Bundle data = new Bundle();
@@ -156,11 +156,11 @@ public class MusicPlayerService extends Service {
             mHandlerThread.start();
         }
         if (null == mWorkerHandler) {
-            mWorkerHandler = new Handler(mHandlerThread.getLooper()){
+            mWorkerHandler = new Handler(mHandlerThread.getLooper()) {
                 @Override
                 public void handleMessage(Message msg) {
                     int what = msg.what;
-                    switch(what){
+                    switch (what) {
                         case 100:
                             Bundle data = msg.getData();
                             //按键值
@@ -168,15 +168,15 @@ public class MusicPlayerService extends Service {
                             //按键时长
                             long eventTime = data.getLong("event_time");
                             //设置超过1000毫秒，就触发长按事件  //谷歌把超过1000s定义为长按。
-                            boolean isLongPress = (eventTime>1000);
-                            switch(keyCode){
+                            boolean isLongPress = (eventTime > 1000);
+                            switch (keyCode) {
                                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE://播放或暂停
                                 case KeyEvent.KEYCODE_HEADSETHOOK://播放或暂停
                                     //playOrPause();
                                     Log.d(TAG, "--playOrPause--");
-                                    if (isPlaying){
+                                    if (isPlaying) {
                                         pause();
-                                    }else {
+                                    } else {
                                         playList();
                                     }
                                     break;
@@ -218,7 +218,6 @@ public class MusicPlayerService extends Service {
         // resetState mContext
         this.mContext = null;
     }
-
 
 
     @Override
@@ -340,30 +339,30 @@ public class MusicPlayerService extends Service {
         return mediaPlayer.getCurrentPosition();
     }
 
-    public int getTotalDuration(){
+    public int getTotalDuration() {
 //        if (!isPlaying)return 0;
         return mediaPlayer.getDuration();
     }
 
-    public void play(MusicPlayerModel model){
+    public void play(MusicPlayerModel model) {
         currentIndex = model.getCurrentIndex();
         currentPosition = model.getCurrentPosition();
         musicList = model.getMusicList();
         playList(musicList, currentIndex, currentPosition);
     }
 
-    public void setPresenter(BasePresenter presenter){
+    public void setPresenter(BasePresenter presenter) {
         this.mPresenter = presenter;
     }
 
     public void pause() {
-        if (isPlaying){
+        if (isPlaying) {
             isPlaying = false;
             mediaPlayer.pause();
         }
     }
 
-    public void queueEvent(Runnable runnable, long delayed){
+    public void queueEvent(Runnable runnable, long delayed) {
         mWorkerHandler.postDelayed(runnable, delayed);
     }
 
@@ -371,8 +370,9 @@ public class MusicPlayerService extends Service {
         musicList = list;
     }
 
-    private void playList(List<String> list, int index , int position) {
-        if (list.size() < 0 || index >= list.size()) throw new Error("args error: index: " + index + ", list size: " + list.size());
+    private void playList(List<String> list, int index, int position) {
+        if (list.size() < 0 || index >= list.size())
+            throw new Error("args error: index: " + index + ", list size: " + list.size());
         musicList = list;
         currentIndex = index;
         currentPosition = position;
@@ -380,8 +380,10 @@ public class MusicPlayerService extends Service {
         if (!updateDataSource(musicList.get(currentIndex))) return;
         startPlayerFreshUITask();
     }
+
     private void playList(List<String> list, int index) {
-        if (list.size() < 0 || index >= list.size()) throw new Error("args error: index: " + index + ", list size: " + list.size());
+        if (list.size() < 0 || index >= list.size())
+            throw new Error("args error: index: " + index + ", list size: " + list.size());
         musicList = list;
         currentIndex = index;
 
@@ -391,7 +393,7 @@ public class MusicPlayerService extends Service {
 
     /**
      * start playing music
-     *  data sync from Model {@link MusicPlayerModel}
+     * data sync from Model {@link MusicPlayerModel}
      */
     private void playList() {
         if (musicList == null || musicList.size() < 1) {
@@ -403,7 +405,7 @@ public class MusicPlayerService extends Service {
     }
 
     // 只在最初创建时候与模型同步
-    private boolean syncPlayerWithModel(){
+    private boolean syncPlayerWithModel() {
         MusicPlayerModel mModel = SpUtil.getObject(mContext, MusicPlayerModel.class);
         if (mModel == null) return false;
         musicList = mModel.getMusicList();
@@ -412,7 +414,6 @@ public class MusicPlayerService extends Service {
         currentPosition = mModel.getCurrentPosition();
         return true;
     }
-
 
 
     public void setStateListener(MServiceStateListener stateListener) {
@@ -436,12 +437,12 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    private void startFreshUI(){
+    private void startFreshUI() {
         if (mWorkerHandler != null)
             mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
     }
 
-    private void stopFreshUI(){
+    private void stopFreshUI() {
         if (mWorkerHandler != null) {
             Log.d(TAG, "--removeCallbacksAndMessages--");
             mWorkerHandler.removeCallbacks(UIFreshRunnable);
@@ -456,12 +457,12 @@ public class MusicPlayerService extends Service {
                 Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + getCurrentPosition() + ", totalDuration: " + getTotalDuration());
                 // pause 时，position = 0
 //                if (isPlaying)
-                    currentPosition = getCurrentPosition();
+                currentPosition = getCurrentPosition();
                 stateListener.onStateUpdate(isPlaying, currentPosition, getTotalDuration());
                 // update current position
                 if (musicList.size() > 0) {
                     stateListener.onCurrentMusic(currentIndex);
-                }else {
+                } else {
                     stateListener.onCurrentMusic(-1);
                 }
 
@@ -474,6 +475,7 @@ public class MusicPlayerService extends Service {
 
     public interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);
+
         void onCurrentMusic(int index);
     }
 }

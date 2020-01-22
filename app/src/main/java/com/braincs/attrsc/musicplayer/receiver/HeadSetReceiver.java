@@ -22,8 +22,8 @@ public class HeadSetReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction() ==null) return;
-        if (intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)){
+        if (intent.getAction() == null) return;
+        if (intent.getAction().equalsIgnoreCase(Intent.ACTION_HEADSET_PLUG)) {
             int state = intent.getIntExtra("state", -1);
             switch (state) {
                 case 0:

@@ -7,22 +7,23 @@
         android:layout_width="32dp"
         android:layout_height="match_parent"
         android:src="@drawable/menu_timer" />
+
     <TextView
         android:id="@+id/menu_tv_timer_text"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_marginStart="@dimen/pad_mid"
         android:gravity="center"
-        android:textStyle="bold"
+        android:text="Stop timer"
         android:textColor="@color/BLACK"
-        android:text="Stop timer"/>
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/menu_tv_timer_remain_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:layout_marginStart="@dimen/pad_mid"
-        android:text="..."/>
+        android:gravity="center"
+        android:text="..." />
 
 </LinearLayout>

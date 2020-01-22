@@ -121,7 +121,7 @@ public class NotificationView implements MusicPlayerNotificationView {
                 .setContentIntent(contentIntent)
                 .setContent(notificationView)
                 .setOnlyAlertOnce(true) // 只提示一次
-                .setDefaults(NotificationCompat.DEFAULT_LIGHTS |NotificationCompat.DEFAULT_SOUND)
+                .setDefaults(NotificationCompat.DEFAULT_LIGHTS | NotificationCompat.DEFAULT_SOUND)
                 .setVibrate(new long[]{0})
                 .build();
         return notification;
@@ -150,7 +150,7 @@ public class NotificationView implements MusicPlayerNotificationView {
                 .setCustomBigContentView(notificationView)
                 .setCategory(NotificationCompat.CATEGORY_SERVICE)
                 .setOnlyAlertOnce(true) // 只提示一次
-                .setDefaults(NotificationCompat.DEFAULT_LIGHTS |NotificationCompat.DEFAULT_SOUND)
+                .setDefaults(NotificationCompat.DEFAULT_LIGHTS | NotificationCompat.DEFAULT_SOUND)
                 .setVibrate(new long[]{0})
                 .build();
         return notification;

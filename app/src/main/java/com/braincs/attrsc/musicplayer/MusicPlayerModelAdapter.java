@@ -34,10 +34,11 @@ public class MusicPlayerModelAdapter extends RecyclerView.Adapter<MusicPlayerMod
         this.onItemClickListener = listener;
     }
 
-    public void updateModel(MusicPlayerModel model){
+    public void updateModel(MusicPlayerModel model) {
         this.names = model.getMusicList();
         this.currentIndex = model.getCurrentIndex();
     }
+
     @NonNull
     @Override
     public MusicViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -57,7 +58,7 @@ public class MusicPlayerModelAdapter extends RecyclerView.Adapter<MusicPlayerMod
         musicViewHolder.tvName.setText(name);
         if (position == currentIndex) {
             musicViewHolder.tvName.setTextColor(context.getResources().getColor(R.color.CRIMSON));
-        }else {
+        } else {
             musicViewHolder.tvName.setTextColor(context.getResources().getColor(R.color.STEELBLUE));
         }
         musicViewHolder.tvPath.setText(path);

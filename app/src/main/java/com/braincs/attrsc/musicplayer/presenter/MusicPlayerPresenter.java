@@ -30,7 +30,7 @@ import java.util.TimerTask;
  * Created by Shuai
  * 17/12/2019.
  */
-public class MusicPlayerPresenter implements BasePresenter{
+public class MusicPlayerPresenter implements BasePresenter {
     private static final String TAG = MusicPlayerPresenter.class.getSimpleName();
     private MusicPlayerActivityView mView;
     private MusicPlayerNotificationView mNotificationView;
@@ -53,14 +53,14 @@ public class MusicPlayerPresenter implements BasePresenter{
     }
 
     private void syncUIwithModel() {
-        if (mModel.getMusicList().size() == 0){
+        if (mModel.getMusicList().size() == 0) {
             mView.setMusicBarName("");
-        }else {
+        } else {
             mView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
         }
-        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING) {
             mView.setMusicBtnPause();
-        }else {
+        } else {
             mView.setMusicBtnPlay();
         }
         mView.updateProgress(mModel.getCurrentPosition(), mModel.getTotalDuration());
@@ -69,34 +69,35 @@ public class MusicPlayerPresenter implements BasePresenter{
         freshNotificationUI();
     }
 
-    private void freshNotificationUI(){
-        if (mModel.getMusicList().size() == 0){
+    private void freshNotificationUI() {
+        if (mModel.getMusicList().size() == 0) {
             mNotificationView.setMusicBarName("");
-        }else {
+        } else {
             mNotificationView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
         }
-        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING) {
             mNotificationView.setMusicBtnPause();
-        }else {
+        } else {
             mNotificationView.setMusicBtnPlay();
         }
     }
 
-    public void playList(int index){
+    public void playList(int index) {
         mModel.setCurrentIndex(index);
         mModel.setCurrentPosition(0);
         play();
         syncUIwithModel();
     }
 
-    public void playControl(){
+    public void playControl() {
 //        mService.playControl();
-        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING){
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING) {
             pause();
-        }else {
+        } else {
             play();
         }
     }
+
     private void startService() {
         serviceIntent = new Intent(mView.getContext(), MusicPlayerService.class);
         mView.getContext().startService(serviceIntent);
@@ -110,7 +111,7 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
     }
 
-    public void bindForegroundService(int id, Notification notification){
+    public void bindForegroundService(int id, Notification notification) {
         mService.startForeground(id, notification);
     }
 
@@ -138,77 +139,81 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
     };
 
-    private void registerHeadsetReceiver(){
+    private void registerHeadsetReceiver() {
         IntentFilter filter = new IntentFilter(Intent.ACTION_HEADSET_PLUG);
         mView.getContext().registerReceiver(mHeadSetReceiver, filter);
     }
 
-    private void unregisterHeadsetReceiver(){
+    private void unregisterHeadsetReceiver() {
         mView.getContext().unregisterReceiver(mHeadSetReceiver);
     }
+
     /**
-     *  @deprecated  playAndSeek: use {@link #play()}
+     * @deprecated playAndSeek: use {@link #play()}
      */
     @Deprecated
-    public void playAndSeek(){
+    public void playAndSeek() {
         play();
         mService.seek(mModel.getCurrentPosition());
     }
-    public void play(){
+
+    public void play() {
         updateControlState(true);
         mService.play(mModel);
     }
-    public void pause(){
+
+    public void pause() {
         updateControlState(false);
         mService.pause();
     }
 
-    public void seekTo(int currentPosition){
+    public void seekTo(int currentPosition) {
         mModel.setCurrentPosition(currentPosition);
         mService.seek(currentPosition);
     }
 
-    public void next(){
+    public void next() {
         mModel.next();
         mService.play(mModel);
         syncUIwithModel();
     }
 
-    public void previous(){
+    public void previous() {
         mModel.previous();
         mService.play(mModel);
         syncUIwithModel();
     }
 
-    public void speedUp(){
+    public void speedUp() {
 
     }
 
-    public void speedDown(){
+    public void speedDown() {
 
     }
 
     /**
      * manually shutdown
      */
-    public void shutdown(){
+    public void shutdown() {
         pause();
-        if (null != mService && isBound){
+        if (null != mService && isBound) {
             mService.setStateListener(null);
 
         }
         onStop();
 
-        if (null != mView && null != mView.getContext()){
+        if (null != mView && null != mView.getContext()) {
             mView.getContext().stopService(new Intent(mView.getContext(), MusicPlayerService.class));
-            ActivityManager am = (ActivityManager) mView.getContext().getSystemService (Context.ACTIVITY_SERVICE);
+            ActivityManager am = (ActivityManager) mView.getContext().getSystemService(Context.ACTIVITY_SERVICE);
             am.killBackgroundProcesses(mView.getContext().getPackageName());
             System.exit(0);
         }
 
 
     }
-    public void scrollToCurrent(boolean isSmooth){
+
+    public void scrollToCurrent(boolean isSmooth) {
         mView.scrollTo(mModel.getCurrentIndex(), isSmooth);
     }
 
@@ -218,10 +223,11 @@ public class MusicPlayerPresenter implements BasePresenter{
 
     /**
      * update seekbar progress if fromUser
+     *
      * @param progress progress
      * @param fromUser is touched by user
      */
-    public void updateSeekBarFromUser(int progress, boolean fromUser){
+    public void updateSeekBarFromUser(int progress, boolean fromUser) {
         isSeekBarFromUser = fromUser;
         if (isSeekBarFromUser) {
             mModel.setCurrentPosition(progress);
@@ -229,12 +235,12 @@ public class MusicPlayerPresenter implements BasePresenter{
         }
     }
 
-    private void updateControlState(boolean isPlaying){
-        if (isPlaying){
+    private void updateControlState(boolean isPlaying) {
+        if (isPlaying) {
             mModel.setState(MusicPlayerModel.STATE_PLAYING);
             mView.setMusicBtnPause();
             mNotificationView.setMusicBtnPause();
-        }else {
+        } else {
             mModel.setState(MusicPlayerModel.STATE_PAUSE);
             mView.setMusicBtnPlay();
             mNotificationView.setMusicBtnPlay();
@@ -248,7 +254,7 @@ public class MusicPlayerPresenter implements BasePresenter{
             updateControlState(isPlaying);
 
 //            if (!isPlaying) return; //paused position and duration may 0
-            mModel.setState(isPlaying? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE);
+            mModel.setState(isPlaying ? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE);
             mModel.setCurrentPosition(currentPosition);
             mModel.setTotalDuration(totalDuration);
             SpUtil.putObject(mView.getContext(), mModel);
@@ -260,7 +266,8 @@ public class MusicPlayerPresenter implements BasePresenter{
 
         @Override
         public void onCurrentMusic(int index) {
-            if (null == mModel || mModel.getMusicList() == null || mModel.getMusicList().size() < 1)return;
+            if (null == mModel || mModel.getMusicList() == null || mModel.getMusicList().size() < 1)
+                return;
             // 列表播放时更新 index
             mModel.setCurrentIndex(index);
             File file = new File(mModel.getMusicList().get(index));
@@ -273,7 +280,7 @@ public class MusicPlayerPresenter implements BasePresenter{
         return isBound;
     }
 
-    public boolean isPlaying(){
+    public boolean isPlaying() {
         return isBound && mService.isPlaying();
     }
 
@@ -293,15 +300,15 @@ public class MusicPlayerPresenter implements BasePresenter{
             public void run() {
                 pause();
                 unBindService();
-                ((Activity)mView.getContext()).finish();
+                ((Activity) mView.getContext()).finish();
             }
         }, remainTime[0]);
 
         mService.queueEvent(new Runnable() {
             @Override
             public void run() {
-                remainTime[0]-= 1000;
-                if (remainTime[0] < 0)  return;
+                remainTime[0] -= 1000;
+                if (remainTime[0] < 0) return;
                 Log.d(TAG, "remain time = " + remainTime[0]);
                 //update ui timer left
                 mView.updateTimerLeft(TimeUtil.int2TimeStr((int) remainTime[0]));
@@ -317,13 +324,14 @@ public class MusicPlayerPresenter implements BasePresenter{
         mView.themeUpdate();
     }
 
-    public void setHeadSetStatus(int status){
+    public void setHeadSetStatus(int status) {
         SpUtil.put(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, status);
     }
 
-    public int getHeadSetStatus(){
+    public int getHeadSetStatus() {
         return (int) SpUtil.get(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, 0);
     }
+
     @Override
     public void onStart() {
         registerHeadsetReceiver();

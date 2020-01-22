@@ -20,29 +20,30 @@ public class MediaUtil {
     private final static String TAG = MediaUtil.class.getSimpleName();
     private final static String[] MUSIC_SURFIX = {"mp3", "Mp3", "MP3"};
 
-    public static List<String> getAllMediaMp3Files(String subSdcard){
+    public static List<String> getAllMediaMp3Files(String subSdcard) {
 
         Log.d(TAG, "--getAllMediaMp3Files--");
         File externalStorageDirectory = Environment.getExternalStorageDirectory();
 
         List<String> surfixList = Arrays.asList(MUSIC_SURFIX);
-        return getFiles(new File(externalStorageDirectory ,subSdcard), surfixList);
+        return getFiles(new File(externalStorageDirectory, subSdcard), surfixList);
     }
 
-    public static List<String> getAllMediaMp3Files(){
+    public static List<String> getAllMediaMp3Files() {
 
         Log.d(TAG, "--getAllMediaMp3Files--");
         File externalStorageDirectory = Environment.getExternalStorageDirectory();
 
         List<String> surfixList = Arrays.asList(MUSIC_SURFIX);
-        return getFiles(new File(externalStorageDirectory ,"Music"), surfixList);
+        return getFiles(new File(externalStorageDirectory, "Music"), surfixList);
     }
 
     /**
      * getFiles from directory with specific suffix
      * Note that: it is a time-consuming function
+     *
      * @param directory directory
-     * @param suffix suffix e.g. ["mp3", "MP3"].asList();
+     * @param suffix    suffix e.g. ["mp3", "MP3"].asList();
      * @return list of file abs path
      */
     public static List<String> getFiles(File directory, List<String> suffix) {
@@ -51,13 +52,13 @@ public class MediaUtil {
         if (null == fList || fList.length == 0) return files;
         for (File file : fList) {
 
-            if (file.isFile()){
+            if (file.isFile()) {
                 String fileName = file.getName();
                 String[] s = fileName.split("\\.");
-                Log.d(TAG,file.getName() + Arrays.toString(s));
+                Log.d(TAG, file.getName() + Arrays.toString(s));
                 if (s.length < 1) continue;
-                String curSurfix = s[s.length -1];
-                if (suffix.contains(curSurfix)){
+                String curSurfix = s[s.length - 1];
+                if (suffix.contains(curSurfix)) {
                     files.add(file.getAbsolutePath());
                 }
             } else if (file.isDirectory()) {

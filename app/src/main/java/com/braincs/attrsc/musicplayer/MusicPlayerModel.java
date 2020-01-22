@@ -33,13 +33,13 @@ public class MusicPlayerModel {
     public List<String> getMusicList() {
 
         //todo async method implementation
-        if (musicList == null || musicList.size() == 0 ) {
+        if (musicList == null || musicList.size() == 0) {
             scanMusic();
         }
         return musicList;
     }
 
-    public void scanMusic(){
+    public void scanMusic() {
         musicList = MediaUtil.getAllMediaMp3Files(directory);
         // sort by integer string
         Collections.sort(musicList, MediaUtil.integerComparator);
@@ -58,24 +58,24 @@ public class MusicPlayerModel {
         return fdir.getAbsolutePath();
     }
 
-    public String currentMusic(){
+    public String currentMusic() {
         return musicList.get(currentIndex);
     }
 
-    public int next(){
-        currentIndex ++;
+    public int next() {
+        currentIndex++;
         currentPosition = 0;
-        if (currentIndex >= musicList.size()){
+        if (currentIndex >= musicList.size()) {
             currentIndex = 0;
         }
         return currentIndex;
     }
 
-    public int previous(){
-        currentIndex --;
+    public int previous() {
+        currentIndex--;
         currentPosition = 0;
-        if (currentIndex <= 0){
-            currentIndex = musicList.size() -1;
+        if (currentIndex <= 0) {
+            currentIndex = musicList.size() - 1;
         }
         return currentIndex;
     }

@@ -14,6 +14,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.PowerManager;
+import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -51,7 +52,7 @@ public class MusicPlayerService extends Service {
     private BasePresenter mPresenter;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
-    public static class MediaButtonReceiver extends BroadcastReceiver {
+    public static class MMediaButtonReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -180,6 +181,16 @@ public class MusicPlayerService extends Service {
                                         playList();
                                     }
                                     break;
+                                case KeyEvent.KEYCODE_MEDIA_PAUSE://播放或暂停
+                                    if (isPlaying) {
+                                        pause();
+                                    }
+                                    break;
+
+                                case KeyEvent.KEYCODE_MEDIA_PLAY:
+                                    if (!isPlaying){
+                                        playList();
+                                    }
 //                                //短按=播放下一首音乐，长按=音量加
 //                                case KeyEvent.KEYCODE_MEDIA_NEXT:
 //                                    if(isLongPress){

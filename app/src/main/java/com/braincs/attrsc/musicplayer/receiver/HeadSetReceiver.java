@@ -16,9 +16,16 @@ import com.braincs.attrsc.musicplayer.utils.SpUtil;
  */
 public class HeadSetReceiver extends BroadcastReceiver {
     private final static String TAG = HeadSetReceiver.class.getSimpleName();
-    private final MusicPlayerPresenter presenter;
+    private MusicPlayerPresenter presenter;
 
     public HeadSetReceiver(MusicPlayerPresenter presenter) {
+        this.presenter = presenter;
+    }
+
+    public HeadSetReceiver(){
+    }
+
+    public void setPresenter(MusicPlayerPresenter presenter){
         this.presenter = presenter;
     }
 

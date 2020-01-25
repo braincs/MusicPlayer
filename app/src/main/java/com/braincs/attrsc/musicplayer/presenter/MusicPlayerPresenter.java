@@ -14,6 +14,7 @@ import android.media.AudioManager;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.braincs.attrsc.musicplayer.MusicPlayerApplication;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
 import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
@@ -345,7 +346,9 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     @Override
     public void onStart() {
-        registerHeadsetReceiver();
+//        registerHeadsetReceiver();
+        HeadSetReceiver headSetReceiver = ((MusicPlayerApplication) mView.getContext().getApplicationContext()).getHeadSetReceiver();
+        headSetReceiver.setPresenter(this);
     }
 
     @Override
@@ -368,6 +371,6 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     @Override
     public void onDestory() {
-        unregisterHeadsetReceiver();
+//        unregisterHeadsetReceiver();
     }
 }

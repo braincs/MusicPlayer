@@ -270,7 +270,7 @@ public class MusicPlayerService extends Service {
 
         // stop UI update
         stopFreshUI();
-        return super.onUnbind(intent);
+        return true;
     }
 
     @Override

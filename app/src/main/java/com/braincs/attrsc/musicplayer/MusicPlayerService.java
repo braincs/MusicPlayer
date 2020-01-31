@@ -241,22 +241,35 @@ public class MusicPlayerService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "--onStartCommand--");
-        initPlayerSafely();
-        initHandler();
+        initAllSafely();
         return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(TAG, "--onBind--");
-        initPlayerSafely();
-        initHandler();
+        initAllSafely();
         return mBinder;
     }
+
+    /**
+     * init all only first time effective
+     */
+    private void initAllSafely() {
+        initPlayerSafely();
+        initHandler();
+        if (mediaPlayer.isPlaying()){
+            startFreshUI();
+        }
+    }
+
 
     @Override
     public boolean onUnbind(Intent intent) {
         Log.d(TAG, "--onUnbind--");
+
+        // stop UI update
+        stopFreshUI();
         return super.onUnbind(intent);
     }
 

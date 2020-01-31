@@ -3,12 +3,12 @@ package com.braincs.attrsc.musicplayer;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 
+import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.MediaUtil;
 import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -28,6 +28,15 @@ public class MusicPlayerModel {
 
     public MusicPlayerModel(String directory) {
         this.directory = directory;
+    }
+
+    public MusicPlayerModel(int state, List<String> musicList, int currentIndex, int currentPosition, int totalDuration) {
+        this.directory = Constants.MUSIC_DIRECTORY;
+        this.state = state;
+        this.musicList = musicList;
+        this.currentIndex = currentIndex;
+        this.currentPosition = currentPosition;
+        this.totalDuration = totalDuration;
     }
 
     public List<String> getMusicList() {

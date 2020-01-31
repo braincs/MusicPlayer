@@ -132,6 +132,8 @@ public class MusicPlayerPresenter implements BasePresenter {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             isBound = false;
+            mService.setPresenter(null);
+            mService.setStateListener(null);
         }
     };
 
@@ -146,7 +148,7 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     public void play() {
         updateControlState(true);
-        mService.play(mModel);
+        mService.play();
     }
 
     public void pause() {
@@ -161,13 +163,15 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     public void next() {
         mModel.next();
-        mService.play(mModel);
+        SpUtil.putObject(mView.getContext(), mModel);
+        mService.play();
         syncUIwithModel();
     }
 
     public void previous() {
         mModel.previous();
-        mService.play(mModel);
+        SpUtil.putObject(mView.getContext(), mModel);
+        mService.play();
         syncUIwithModel();
     }
 
@@ -248,7 +252,7 @@ public class MusicPlayerPresenter implements BasePresenter {
             mModel.setState(isPlaying ? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE);
             mModel.setCurrentPosition(currentPosition);
             mModel.setTotalDuration(totalDuration);
-            SpUtil.putObject(mView.getContext(), mModel);
+//            SpUtil.putObject(mView.getContext(), mModel);
 //            Log.d(TAG, "isSeekBarFromUser = " + isSeekBarFromUser);
             if (!isSeekBarFromUser) {
                 mView.updateProgress(currentPosition, totalDuration);

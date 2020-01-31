@@ -104,7 +104,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private void initModelPresenter() {
         model = SpUtil.getObject(context, MusicPlayerModel.class);
         if (model == null) {
-            model = new MusicPlayerModel("Music");
+            model = new MusicPlayerModel( Constants.MUSIC_DIRECTORY);
             /**
              * Showing Swipe Refresh animation on activity create
              * As animation won't start on onCreate, post runnable is used

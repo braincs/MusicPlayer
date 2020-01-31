@@ -48,6 +48,7 @@ public class MusicPlayerService extends Service {
     private List<String> musicList = new LinkedList<>();
     private int currentIndex = 0;
     private int currentPosition = 0;
+    private int currentDuration = 0;
     private MServiceStateListener stateListener;
     private HandlerThread mHandlerThread;
     private Handler mWorkerHandler;
@@ -55,6 +56,7 @@ public class MusicPlayerService extends Service {
     private MediaSessionCompat mMediaSession;
     private BasePresenter mPresenter;
     private HeadSetReceiver headSetReceiver;
+    private boolean isViewVisible;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
     public static class MMediaButtonReceiver extends BroadcastReceiver {
@@ -195,7 +197,7 @@ public class MusicPlayerService extends Service {
                                     break;
 
                                 case KeyEvent.KEYCODE_MEDIA_PLAY:
-                                    if (!isPlaying){
+                                    if (!isPlaying) {
                                         playList();
                                     }
 //                                //短按=播放下一首音乐，长按=音量加
@@ -256,9 +258,10 @@ public class MusicPlayerService extends Service {
      * init all only first time effective
      */
     private void initAllSafely() {
+        isViewVisible = true;
         initPlayerSafely();
         initHandler();
-        if (mediaPlayer.isPlaying()){
+        if (mediaPlayer.isPlaying()) {
             startFreshUI();
         }
     }
@@ -269,6 +272,7 @@ public class MusicPlayerService extends Service {
         Log.d(TAG, "--onUnbind--");
 
         // stop UI update
+        isViewVisible = false;
         stopFreshUI();
         return true;
     }
@@ -277,6 +281,8 @@ public class MusicPlayerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "--onDestroy--");
+
+        pause();
 
         // unregister receiver
         unregisterReceiver(headSetReceiver);
@@ -359,6 +365,8 @@ public class MusicPlayerService extends Service {
             public void onPrepared(MediaPlayer mp) {
                 seek(currentPosition);
                 mediaPlayer.start();
+                currentDuration = mediaPlayer.getDuration();
+                cacheCurrentState();
                 startFreshUI();
                 isPlaying = true;
             }
@@ -386,6 +394,14 @@ public class MusicPlayerService extends Service {
         playList(musicList, currentIndex, currentPosition);
     }
 
+    public void play() {
+        MusicPlayerModel model = getCachedModel();
+        currentIndex = model.getCurrentIndex();
+        currentPosition = model.getCurrentPosition();
+        musicList = model.getMusicList();
+        playList(musicList, currentIndex, currentPosition);
+    }
+
     public void setPresenter(BasePresenter presenter) {
         this.mPresenter = presenter;
     }
@@ -393,7 +409,12 @@ public class MusicPlayerService extends Service {
     public void pause() {
         if (isPlaying) {
             isPlaying = false;
+            currentDuration = mediaPlayer.getDuration();
             mediaPlayer.pause();
+            currentPosition = getCurrentPosition();
+
+            //save to cache
+            cacheCurrentState();
         }
     }
 
@@ -405,8 +426,24 @@ public class MusicPlayerService extends Service {
         musicList = list;
     }
 
+    private void cacheCurrentState() {
+//        Log.d(TAG, "cached currentPosition = " + currentPosition);
+        MusicPlayerModel model = new MusicPlayerModel(
+                isPlaying ? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE,
+                musicList,
+                currentIndex,
+                currentPosition,
+                currentDuration);
+
+        SpUtil.putObject(mContext, model);
+    }
+
+    private MusicPlayerModel getCachedModel() {
+        return SpUtil.getObject(mContext, MusicPlayerModel.class);
+    }
+
     private void playList(List<String> list, int index, int position) {
-        if (list.size() < 0 || index >= list.size())
+        if (list.size() <= 0 || index >= list.size())
             throw new Error("args error: index: " + index + ", list size: " + list.size());
         musicList = list;
         currentIndex = index;
@@ -417,13 +454,7 @@ public class MusicPlayerService extends Service {
     }
 
     private void playList(List<String> list, int index) {
-        if (list.size() < 0 || index >= list.size())
-            throw new Error("args error: index: " + index + ", list size: " + list.size());
-        musicList = list;
-        currentIndex = index;
-
-        if (!updateDataSource(musicList.get(currentIndex))) return;
-        startPlayerFreshUITask();
+        playList(list, index, 0);
     }
 
     /**
@@ -435,13 +466,12 @@ public class MusicPlayerService extends Service {
             // sync with model
             if (!syncPlayerWithModel()) return;
         }
-        if (!updateDataSource(musicList.get(currentIndex))) return;
-        startPlayerFreshUITask();
+        playList(musicList, currentIndex, currentPosition);
     }
 
     // 只在最初创建时候与模型同步
     private boolean syncPlayerWithModel() {
-        MusicPlayerModel mModel = SpUtil.getObject(mContext, MusicPlayerModel.class);
+        MusicPlayerModel mModel = getCachedModel();
         if (mModel == null) return false;
         musicList = mModel.getMusicList();
         if (musicList.size() < 1) return false;
@@ -473,7 +503,7 @@ public class MusicPlayerService extends Service {
     }
 
     private void startFreshUI() {
-        if (mWorkerHandler != null)
+        if (mWorkerHandler != null && isViewVisible)
             mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
     }
 
@@ -489,11 +519,11 @@ public class MusicPlayerService extends Service {
         @Override
         public void run() {
             if (null != stateListener) {
-                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + getCurrentPosition() + ", totalDuration: " + getTotalDuration());
                 // pause 时，position = 0
 //                if (isPlaying)
                 currentPosition = getCurrentPosition();
-                stateListener.onStateUpdate(isPlaying, currentPosition, getTotalDuration());
+                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + currentPosition + ", totalDuration: " + currentDuration);
+                stateListener.onStateUpdate(isPlaying, currentPosition, currentDuration);
                 // update current position
                 if (musicList.size() > 0) {
                     stateListener.onCurrentMusic(currentIndex);

@@ -4,25 +4,20 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.Service;
-import android.bluetooth.BluetoothHeadset;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.braincs.attrsc.musicplayer.MusicPlayerApplication;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
-import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
 import com.braincs.attrsc.musicplayer.utils.Constants;
+import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
-import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.view.NotificationView;
 
 import java.io.File;
@@ -43,7 +38,6 @@ public class MusicPlayerPresenter implements BasePresenter {
     private volatile boolean isSeekBarFromUser;
     private Intent serviceIntent;
     private Timer timer;
-    private static HeadSetReceiver mHeadSetReceiver;
 
 
     public MusicPlayerPresenter(MusicPlayerActivityView mView, MusicPlayerModel model) {
@@ -52,7 +46,6 @@ public class MusicPlayerPresenter implements BasePresenter {
         this.mNotificationView = new NotificationView(mView.getContext());
         timer = new Timer("stopTimer");
 
-        mHeadSetReceiver = new HeadSetReceiver(this);
     }
 
     private void syncUIwithModel() {
@@ -141,20 +134,6 @@ public class MusicPlayerPresenter implements BasePresenter {
             isBound = false;
         }
     };
-
-    private void registerHeadsetReceiver() {
-        IntentFilter filter = new IntentFilter();
-        //有线耳机
-        filter.addAction(Intent.ACTION_HEADSET_PLUG);
-        //监听蓝牙耳机
-        filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-
-        mView.getContext().registerReceiver(mHeadSetReceiver, filter);
-    }
-
-    private void unregisterHeadsetReceiver() {
-        mView.getContext().unregisterReceiver(mHeadSetReceiver);
-    }
 
     /**
      * @deprecated playAndSeek: use {@link #play()}
@@ -336,19 +315,9 @@ public class MusicPlayerPresenter implements BasePresenter {
         mView.themeUpdate();
     }
 
-    public void setHeadSetStatus(int status) {
-        SpUtil.put(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, status);
-    }
-
-    public int getHeadSetStatus() {
-        return (int) SpUtil.get(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, 0);
-    }
 
     @Override
     public void onStart() {
-//        registerHeadsetReceiver();
-        HeadSetReceiver headSetReceiver = ((MusicPlayerApplication) mView.getContext().getApplicationContext()).getHeadSetReceiver();
-        headSetReceiver.setPresenter(this);
     }
 
     @Override

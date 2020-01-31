@@ -21,18 +21,17 @@
         android:layout_toEndOf="@+id/iv_music"
         android:orientation="vertical">
 
-        <LinearLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+            android:layout_weight="1">
 
             <TextView
                 android:id="@+id/tv_not_music_name"
                 style="@style/TextAppearance.Compat.Notification.Title"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_toStartOf="@+id/noti_btn_close"
                 android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="2"
@@ -46,8 +45,9 @@
                 android:background="@color/TRANSPARENT"
                 android:padding="@dimen/pad_small"
                 android:scaleType="fitXY"
-                android:src="@drawable/notification_close" />
-        </LinearLayout>
+                android:src="@drawable/notification_close"
+                android:layout_alignParentEnd="true"/>
+        </RelativeLayout>
 
 
         <include

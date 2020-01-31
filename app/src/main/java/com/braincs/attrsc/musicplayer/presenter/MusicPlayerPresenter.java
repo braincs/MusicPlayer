@@ -4,25 +4,20 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.Service;
-import android.bluetooth.BluetoothHeadset;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.media.AudioManager;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.braincs.attrsc.musicplayer.MusicPlayerApplication;
 import com.braincs.attrsc.musicplayer.MusicPlayerModel;
 import com.braincs.attrsc.musicplayer.MusicPlayerService;
-import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
 import com.braincs.attrsc.musicplayer.utils.Constants;
+import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
-import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.view.NotificationView;
 
 import java.io.File;
@@ -320,19 +315,9 @@ public class MusicPlayerPresenter implements BasePresenter {
         mView.themeUpdate();
     }
 
-    public void setHeadSetStatus(int status) {
-        SpUtil.put(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, status);
-    }
-
-    public int getHeadSetStatus() {
-        return (int) SpUtil.get(mView.getContext(), Constants.SP_KEY_HEADSET_STATUS, 0);
-    }
 
     @Override
     public void onStart() {
-//        registerHeadsetReceiver();
-        HeadSetReceiver headSetReceiver = ((MusicPlayerApplication) mView.getContext().getApplicationContext()).getHeadSetReceiver();
-        headSetReceiver.setPresenter(this);
     }
 
     @Override

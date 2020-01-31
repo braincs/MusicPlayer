@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -21,6 +22,9 @@ import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.braincs.attrsc.musicplayer.presenter.BasePresenter;
+import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
+import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
+import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 
 import java.io.IOException;
@@ -50,6 +54,7 @@ public class MusicPlayerService extends Service {
     private boolean isPlaying = false;
     private MediaSessionCompat mMediaSession;
     private BasePresenter mPresenter;
+    private HeadSetReceiver headSetReceiver;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
     public static class MMediaButtonReceiver extends BroadcastReceiver {
@@ -125,6 +130,8 @@ public class MusicPlayerService extends Service {
 
         mContext = this;
         initPlayer();
+
+        registerHeadsetReceiver();
     }
 
     private void initPlayerSafely() {
@@ -257,6 +264,10 @@ public class MusicPlayerService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "--onDestroy--");
+
+        // unregister receiver
+        unregisterReceiver(headSetReceiver);
+
         if (mPresenter != null) {
             mPresenter.onStop();
         }
@@ -483,6 +494,25 @@ public class MusicPlayerService extends Service {
         }
     };
 
+    private void registerHeadsetReceiver() {
+        headSetReceiver = new HeadSetReceiver(this);
+        IntentFilter filter = new IntentFilter();
+
+        //有线耳机
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+        //监听蓝牙耳机
+        filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+
+        registerReceiver(headSetReceiver, filter);
+    }
+
+    public void setHeadSetStatus(int status) {
+        SpUtil.put(this, Constants.SP_KEY_HEADSET_STATUS, status);
+    }
+
+    public int getHeadSetStatus() {
+        return (int) SpUtil.get(this, Constants.SP_KEY_HEADSET_STATUS, 0);
+    }
 
     public interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);

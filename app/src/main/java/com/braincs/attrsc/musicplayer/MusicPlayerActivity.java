@@ -199,6 +199,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        presenter.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         presenter.onDestory();

@@ -43,7 +43,6 @@ public class MusicPlayerPresenter implements BasePresenter {
     private volatile boolean isSeekBarFromUser;
     private Intent serviceIntent;
     private Timer timer;
-    private static HeadSetReceiver mHeadSetReceiver;
 
 
     public MusicPlayerPresenter(MusicPlayerActivityView mView, MusicPlayerModel model) {
@@ -52,7 +51,6 @@ public class MusicPlayerPresenter implements BasePresenter {
         this.mNotificationView = new NotificationView(mView.getContext());
         timer = new Timer("stopTimer");
 
-        mHeadSetReceiver = new HeadSetReceiver(this);
     }
 
     private void syncUIwithModel() {
@@ -141,20 +139,6 @@ public class MusicPlayerPresenter implements BasePresenter {
             isBound = false;
         }
     };
-
-    private void registerHeadsetReceiver() {
-        IntentFilter filter = new IntentFilter();
-        //有线耳机
-        filter.addAction(Intent.ACTION_HEADSET_PLUG);
-        //监听蓝牙耳机
-        filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-
-        mView.getContext().registerReceiver(mHeadSetReceiver, filter);
-    }
-
-    private void unregisterHeadsetReceiver() {
-        mView.getContext().unregisterReceiver(mHeadSetReceiver);
-    }
 
     /**
      * @deprecated playAndSeek: use {@link #play()}

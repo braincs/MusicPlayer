@@ -78,21 +78,6 @@ public class MusicPlayerPresenter implements BasePresenter {
         }
     }
 
-    public void playList(int index) {
-        mModel.setCurrentIndex(index);
-        mModel.setCurrentPosition(0);
-        play();
-        syncUIwithModel();
-    }
-
-    public void playControl() {
-//        mService.playControl();
-        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING) {
-            pause();
-        } else {
-            play();
-        }
-    }
 
     private void startService() {
         serviceIntent = new Intent(mView.getContext(), MusicPlayerService.class);
@@ -137,6 +122,25 @@ public class MusicPlayerPresenter implements BasePresenter {
         }
     };
 
+    public void playList(int index) {
+        // reset cached model
+        mModel.setCurrentIndex(index);
+        mModel.setCurrentPosition(0);
+        SpUtil.putObject(mView.getContext(), mModel);
+
+        play();
+        syncUIwithModel();
+    }
+
+    public void playControl() {
+//        mService.playControl();
+        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING) {
+            pause();
+        } else {
+            play();
+        }
+    }
+
     /**
      * @deprecated playAndSeek: use {@link #play()}
      */
@@ -146,6 +150,9 @@ public class MusicPlayerPresenter implements BasePresenter {
         mService.seek(mModel.getCurrentPosition());
     }
 
+    /**
+     * play: play music from cached model
+     */
     public void play() {
         updateControlState(true);
         mService.play();
@@ -162,15 +169,21 @@ public class MusicPlayerPresenter implements BasePresenter {
     }
 
     public void next() {
+        // reset cached model
         mModel.next();
         SpUtil.putObject(mView.getContext(), mModel);
+
+        // play
         mService.play();
         syncUIwithModel();
     }
 
     public void previous() {
+        // reset cached model
         mModel.previous();
         SpUtil.putObject(mView.getContext(), mModel);
+
+        //play
         mService.play();
         syncUIwithModel();
     }

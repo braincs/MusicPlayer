@@ -13,14 +13,10 @@ import java.util.List;
 public interface MusicPlayerView {
     Context getContext();
 
-    void updateProgress(int progress, int total);
-
     void setMusicBtnPlay();
 
     void setMusicBtnPause();
 
     void setMusicBarName(String name);
-
-    void setItems(MusicPlayerModel model);
 
 }

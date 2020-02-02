@@ -1,5 +1,6 @@
 package com.braincs.attrsc.musicplayer;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -22,13 +23,13 @@ import android.view.KeyEvent;
 import android.widget.Toast;
 
 import com.braincs.attrsc.musicplayer.presenter.BasePresenter;
-import com.braincs.attrsc.musicplayer.presenter.MusicPlayerPresenter;
 import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
 import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
+import com.braincs.attrsc.musicplayer.view.NotificationView;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -57,6 +58,7 @@ public class MusicPlayerService extends Service {
     private BasePresenter mPresenter;
     private HeadSetReceiver headSetReceiver;
     private boolean isViewVisible;
+    private NotificationView mNotificationView;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
     public static class MMediaButtonReceiver extends BroadcastReceiver {
@@ -78,6 +80,129 @@ public class MusicPlayerService extends Service {
             Log.d(TAG, "onReceive: " + intent.toString());
 
         }
+    }
+
+    //region Service lifecycle
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "--onCreate--");
+
+        mContext = this;
+
+        //notification bar
+        initNotificationBar();
+
+        initPlayer();
+
+        registerHeadsetReceiver();
+    }
+
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "--onStartCommand--");
+        initAllSafely();
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(TAG, "--onBind--");
+        initAllSafely();
+        return mBinder;
+    }
+
+    /**
+     * init all only first time effective
+     */
+    private void initAllSafely() {
+        isViewVisible = true;
+
+        // sync with cached model
+        syncPlayerWithModel();
+
+        // init MediaPlayer
+        initPlayerSafely();
+
+        // init WorkerHandler
+        initHandler();
+
+        // start UI update task
+        if (mediaPlayer.isPlaying()) {
+            startFreshUI();
+        }
+
+        // update notification
+        updateNotificationView();
+    }
+
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "--onUnbind--");
+
+        // stop UI update
+        isViewVisible = false;
+        stopFreshUI();
+        return true;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "--onDestroy--");
+
+        pause();
+
+        // unregister receiver
+        unregisterReceiver(headSetReceiver);
+
+        if (mPresenter != null) {
+            mPresenter.onStop();
+        }
+        //Give up the audio focus.
+        audioManager.abandonAudioFocus(focusChangeListener);
+
+        releaseHanlder();
+    }
+
+    public class PlayerBinder extends Binder {
+        private MusicPlayerService service;
+
+        public PlayerBinder(MusicPlayerService service) {
+            this.service = service;
+        }
+
+        public MusicPlayerService getService() {
+            return service;
+        }
+    }
+    //endregion
+
+    //region Media
+    private void initPlayerSafely() {
+        synchronized (TAG) {
+            if (mediaPlayer == null) {
+                synchronized (TAG) {
+                    initPlayer();
+                }
+            }
+        }
+    }
+
+    private void initPlayer() {
+        //only init once
+        Log.d(TAG, "--initPlayer--");
+        mediaPlayer = new MediaPlayer();
+        mediaPlayer.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
+        audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN);
+
+        mediaPlayer.setOnCompletionListener(completeListener);
+
+        initMediaSession();
     }
 
     private void initMediaSession() {
@@ -123,43 +248,294 @@ public class MusicPlayerService extends Service {
             mMediaSession.setActive(true);
         }
     }
+    //endregion
+
+    //region Listener
+    AudioManager.OnAudioFocusChangeListener focusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            Log.d(TAG, "--onAudioFocusChange--: " + focusChange);
+        }
+    };
+
+    private MediaPlayer.OnCompletionListener completeListener = new MediaPlayer.OnCompletionListener() {
+        @Override
+        public void onCompletion(MediaPlayer mp) {
+            Log.d(TAG, "--OnCompletionListener--");
+            // fresh current state
+            currentPosition = 0;
+            currentIndex++;
+            if (currentIndex >= musicList.size()) {
+                currentIndex = 0;
+            }
+            // seekTo when stop will trigger onCompletion
+            if (isPlaying)
+                playList(musicList, currentIndex);
+        }
+    };
+
+    //endregion
 
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.d(TAG, "--onCreate--");
-
-        mContext = this;
-        initPlayer();
-
-        registerHeadsetReceiver();
+    @Deprecated
+    public int play(String mp3Path) {
+        try {
+            // need to reset before setDataSource, otherwise IllegalStateException
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(mp3Path);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+            int duration = mediaPlayer.getDuration();
+            Log.d(TAG, "duration :" + duration);
+            return duration;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
-    private void initPlayerSafely() {
-        synchronized (TAG) {
-            if (mediaPlayer == null) {
-                synchronized (TAG) {
-                    initPlayer();
-                }
-            }
+    private boolean updateDataSource(String path) {
+        mediaPlayer.reset();
+        try {
+            mediaPlayer.setDataSource(path);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
-    private void initPlayer() {
-        //only init once
-        Log.d(TAG, "--initPlayer--");
-        mediaPlayer = new MediaPlayer();
-        mediaPlayer.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
-        audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-        audioManager.requestAudioFocus(focusChangeListener, AudioManager.STREAM_MUSIC,
-                AudioManager.AUDIOFOCUS_GAIN);
-
-        mediaPlayer.setOnCompletionListener(completeListener);
-
-        initMediaSession();
+    private void startPlayerFreshUITask() {
+        stopFreshUI();
+        try {
+            mediaPlayer.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(mContext, "File may not existed, please rescan files", Toast.LENGTH_SHORT).show();
+        }
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                seek(currentPosition);
+                mediaPlayer.start();
+                currentDuration = mediaPlayer.getDuration();
+                cacheCurrentState();
+                startFreshUI();
+                isPlaying = true;
+                updateNotificationView();
+            }
+        });
     }
 
+    public boolean isPlaying() {
+        return isPlaying;
+    }
+
+    public int getCurrentPosition() {
+//        if (!isPlaying)return 0;
+        return mediaPlayer.getCurrentPosition();
+    }
+
+    public int getTotalDuration() {
+//        if (!isPlaying)return 0;
+        return mediaPlayer.getDuration();
+    }
+
+    public void play(MusicPlayerModel model) {
+        currentIndex = model.getCurrentIndex();
+        currentPosition = model.getCurrentPosition();
+        musicList = model.getMusicList();
+        playList(musicList, currentIndex, currentPosition);
+    }
+
+    public void play() {
+        MusicPlayerModel model = getCachedModel();
+        currentIndex = model.getCurrentIndex();
+        currentPosition = model.getCurrentPosition();
+        musicList = model.getMusicList();
+        playList(musicList, currentIndex, currentPosition);
+    }
+
+    public void setPresenter(BasePresenter presenter) {
+        this.mPresenter = presenter;
+    }
+
+    public void pause() {
+        if (isPlaying) {
+            isPlaying = false;
+            currentDuration = mediaPlayer.getDuration();
+            mediaPlayer.pause();
+            currentPosition = getCurrentPosition();
+
+            //save to cache
+            cacheCurrentState();
+
+            updateNotificationView();
+        }
+    }
+
+    public void queueEvent(Runnable runnable, long delayed) {
+        mWorkerHandler.postDelayed(runnable, delayed);
+    }
+
+    public void updateMusicList(List<String> list) {
+        musicList = list;
+    }
+
+    private void cacheCurrentState() {
+//        Log.d(TAG, "cached currentPosition = " + currentPosition);
+        MusicPlayerModel model = new MusicPlayerModel(
+                isPlaying ? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE,
+                musicList,
+                currentIndex,
+                currentPosition,
+                currentDuration);
+
+        SpUtil.putObject(mContext, model);
+    }
+
+    private MusicPlayerModel getCachedModel() {
+        return SpUtil.getObject(mContext, MusicPlayerModel.class);
+    }
+
+    private void playList(List<String> list, int index, int position) {
+        if (list.size() <= 0 || index >= list.size())
+            throw new Error("args error: index: " + index + ", list size: " + list.size());
+        musicList = list;
+        currentIndex = index;
+        currentPosition = position;
+
+        if (!updateDataSource(musicList.get(currentIndex))) return;
+        startPlayerFreshUITask();
+    }
+
+    private void playList(List<String> list, int index) {
+        playList(list, index, 0);
+    }
+
+    /**
+     * start playing music
+     * data sync from Model {@link MusicPlayerModel}
+     */
+    private void playList() {
+        if (musicList == null || musicList.size() < 1) {
+            // sync with model
+            if (!syncPlayerWithModel()) return;
+        }
+        playList(musicList, currentIndex, currentPosition);
+    }
+
+    // 只在最初创建时候与模型同步
+    private boolean syncPlayerWithModel() {
+        MusicPlayerModel mModel = getCachedModel();
+        if (mModel == null) return false;
+        musicList = mModel.getMusicList();
+        if (musicList.size() < 1) return false;
+        currentIndex = mModel.getCurrentIndex();
+        currentPosition = mModel.getCurrentPosition();
+        return true;
+    }
+
+
+    public void setStateListener(MServiceStateListener stateListener) {
+        this.stateListener = stateListener;
+    }
+
+    public void seek(int pos) {
+        pos = Math.min(pos, mediaPlayer.getDuration());
+        mediaPlayer.seekTo(pos);
+    }
+
+    private void startFreshUI() {
+        if (mWorkerHandler != null && isViewVisible)
+            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+    }
+
+    private void stopFreshUI() {
+        if (mWorkerHandler != null) {
+            Log.d(TAG, "--removeCallbacksAndMessages--");
+            mWorkerHandler.removeCallbacks(UIFreshRunnable);
+            mWorkerHandler.removeCallbacksAndMessages(null);
+        }
+    }
+
+    private Runnable UIFreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (null != stateListener) {
+                // pause 时，position = 0
+//                if (isPlaying)
+                currentPosition = getCurrentPosition();
+                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + currentPosition + ", totalDuration: " + currentDuration);
+                stateListener.onStateUpdate(isPlaying, currentPosition, currentDuration);
+                // update current position
+                if (musicList.size() > 0) {
+                    stateListener.onCurrentMusic(currentIndex);
+
+                    //set notification music name
+                    mNotificationView.setMusicBarName(new File(musicList.get(currentIndex)).getName());
+
+                } else {
+                    stateListener.onCurrentMusic(-1);
+                }
+
+            }
+            if (isPlaying)
+                mWorkerHandler.postDelayed(this, UI_FRESH_INTERVAL);
+        }
+    };
+
+    //region Headset
+    private void registerHeadsetReceiver() {
+        headSetReceiver = new HeadSetReceiver(this);
+        IntentFilter filter = new IntentFilter();
+
+        //有线耳机
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+        //监听蓝牙耳机
+        filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+
+        registerReceiver(headSetReceiver, filter);
+    }
+
+    public void setHeadSetStatus(int status) {
+        SpUtil.put(this, Constants.SP_KEY_HEADSET_STATUS, status);
+    }
+
+    public int getHeadSetStatus() {
+        return (int) SpUtil.get(this, Constants.SP_KEY_HEADSET_STATUS, 0);
+    }
+    //endregion
+
+    //region Notification
+    private void initNotificationBar() {
+        this.mNotificationView = new NotificationView(mContext);
+        showNotification();
+    }
+
+    private void showNotification() {
+        // show notification
+        Notification notification = mNotificationView.displayNotification();
+        startForeground(NotificationView.NOTIFICATION_ID, notification);
+
+        updateNotificationView();
+    }
+
+    private void updateNotificationView() {
+        if (musicList.size() == 0) {
+            mNotificationView.setMusicBarName("");
+        } else {
+            mNotificationView.setMusicBarName(new File(musicList.get(currentIndex)).getName());
+        }
+        if (isPlaying) {
+            mNotificationView.setMusicBtnPause();
+        } else {
+            mNotificationView.setMusicBtnPlay();
+        }
+    }
+    //endregion
+
+    //region WorkerHandler KeyEventHandler
     private void initHandler() {
         if (null == mHandlerThread) {
             mHandlerThread = new HandlerThread(TAG);
@@ -238,324 +614,7 @@ public class MusicPlayerService extends Service {
         // resetState mContext
         this.mContext = null;
     }
-
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "--onStartCommand--");
-        initAllSafely();
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        Log.d(TAG, "--onBind--");
-        initAllSafely();
-        return mBinder;
-    }
-
-    /**
-     * init all only first time effective
-     */
-    private void initAllSafely() {
-        isViewVisible = true;
-        initPlayerSafely();
-        initHandler();
-        if (mediaPlayer.isPlaying()) {
-            startFreshUI();
-        }
-    }
-
-
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "--onUnbind--");
-
-        // stop UI update
-        isViewVisible = false;
-        stopFreshUI();
-        return true;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "--onDestroy--");
-
-        pause();
-
-        // unregister receiver
-        unregisterReceiver(headSetReceiver);
-
-        if (mPresenter != null) {
-            mPresenter.onStop();
-        }
-        //Give up the audio focus.
-        audioManager.abandonAudioFocus(focusChangeListener);
-
-        releaseHanlder();
-    }
-
-
-    //region Listener
-    AudioManager.OnAudioFocusChangeListener focusChangeListener = new AudioManager.OnAudioFocusChangeListener() {
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-            Log.d(TAG, "--onAudioFocusChange--: " + focusChange);
-        }
-    };
-
-    private MediaPlayer.OnCompletionListener completeListener = new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mp) {
-            Log.d(TAG, "--OnCompletionListener--");
-            // fresh current state
-            currentPosition = 0;
-            currentIndex++;
-            if (currentIndex >= musicList.size()) {
-                currentIndex = 0;
-            }
-            // seekTo when stop will trigger onCompletion
-            if (isPlaying)
-                playList(musicList, currentIndex);
-        }
-    };
-
     //endregion
-
-
-    @Deprecated
-    public int play(String mp3Path) {
-        try {
-            // need to reset before setDataSource, otherwise IllegalStateException
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(mp3Path);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            int duration = mediaPlayer.getDuration();
-            Log.d(TAG, "duration :" + duration);
-            return duration;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
-    private boolean updateDataSource(String path) {
-        mediaPlayer.reset();
-        try {
-            mediaPlayer.setDataSource(path);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    private void startPlayerFreshUITask() {
-        stopFreshUI();
-        try {
-            mediaPlayer.prepare();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(mContext, "File may not existed, please rescan files", Toast.LENGTH_SHORT).show();
-        }
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                seek(currentPosition);
-                mediaPlayer.start();
-                currentDuration = mediaPlayer.getDuration();
-                cacheCurrentState();
-                startFreshUI();
-                isPlaying = true;
-            }
-        });
-    }
-
-    public boolean isPlaying() {
-        return isPlaying;
-    }
-
-    public int getCurrentPosition() {
-//        if (!isPlaying)return 0;
-        return mediaPlayer.getCurrentPosition();
-    }
-
-    public int getTotalDuration() {
-//        if (!isPlaying)return 0;
-        return mediaPlayer.getDuration();
-    }
-
-    public void play(MusicPlayerModel model) {
-        currentIndex = model.getCurrentIndex();
-        currentPosition = model.getCurrentPosition();
-        musicList = model.getMusicList();
-        playList(musicList, currentIndex, currentPosition);
-    }
-
-    public void play() {
-        MusicPlayerModel model = getCachedModel();
-        currentIndex = model.getCurrentIndex();
-        currentPosition = model.getCurrentPosition();
-        musicList = model.getMusicList();
-        playList(musicList, currentIndex, currentPosition);
-    }
-
-    public void setPresenter(BasePresenter presenter) {
-        this.mPresenter = presenter;
-    }
-
-    public void pause() {
-        if (isPlaying) {
-            isPlaying = false;
-            currentDuration = mediaPlayer.getDuration();
-            mediaPlayer.pause();
-            currentPosition = getCurrentPosition();
-
-            //save to cache
-            cacheCurrentState();
-        }
-    }
-
-    public void queueEvent(Runnable runnable, long delayed) {
-        mWorkerHandler.postDelayed(runnable, delayed);
-    }
-
-    public void updateMusicList(List<String> list) {
-        musicList = list;
-    }
-
-    private void cacheCurrentState() {
-//        Log.d(TAG, "cached currentPosition = " + currentPosition);
-        MusicPlayerModel model = new MusicPlayerModel(
-                isPlaying ? MusicPlayerModel.STATE_PLAYING : MusicPlayerModel.STATE_PAUSE,
-                musicList,
-                currentIndex,
-                currentPosition,
-                currentDuration);
-
-        SpUtil.putObject(mContext, model);
-    }
-
-    private MusicPlayerModel getCachedModel() {
-        return SpUtil.getObject(mContext, MusicPlayerModel.class);
-    }
-
-    private void playList(List<String> list, int index, int position) {
-        if (list.size() <= 0 || index >= list.size())
-            throw new Error("args error: index: " + index + ", list size: " + list.size());
-        musicList = list;
-        currentIndex = index;
-        currentPosition = position;
-
-        if (!updateDataSource(musicList.get(currentIndex))) return;
-        startPlayerFreshUITask();
-    }
-
-    private void playList(List<String> list, int index) {
-        playList(list, index, 0);
-    }
-
-    /**
-     * start playing music
-     * data sync from Model {@link MusicPlayerModel}
-     */
-    private void playList() {
-        if (musicList == null || musicList.size() < 1) {
-            // sync with model
-            if (!syncPlayerWithModel()) return;
-        }
-        playList(musicList, currentIndex, currentPosition);
-    }
-
-    // 只在最初创建时候与模型同步
-    private boolean syncPlayerWithModel() {
-        MusicPlayerModel mModel = getCachedModel();
-        if (mModel == null) return false;
-        musicList = mModel.getMusicList();
-        if (musicList.size() < 1) return false;
-        currentIndex = mModel.getCurrentIndex();
-        currentPosition = mModel.getCurrentPosition();
-        return true;
-    }
-
-
-    public void setStateListener(MServiceStateListener stateListener) {
-        this.stateListener = stateListener;
-    }
-
-    public void seek(int pos) {
-        pos = Math.min(pos, mediaPlayer.getDuration());
-        mediaPlayer.seekTo(pos);
-    }
-
-    public class PlayerBinder extends Binder {
-        private MusicPlayerService service;
-
-        public PlayerBinder(MusicPlayerService service) {
-            this.service = service;
-        }
-
-        public MusicPlayerService getService() {
-            return service;
-        }
-    }
-
-    private void startFreshUI() {
-        if (mWorkerHandler != null && isViewVisible)
-            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
-    }
-
-    private void stopFreshUI() {
-        if (mWorkerHandler != null) {
-            Log.d(TAG, "--removeCallbacksAndMessages--");
-            mWorkerHandler.removeCallbacks(UIFreshRunnable);
-            mWorkerHandler.removeCallbacksAndMessages(null);
-        }
-    }
-
-    private Runnable UIFreshRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (null != stateListener) {
-                // pause 时，position = 0
-//                if (isPlaying)
-                currentPosition = getCurrentPosition();
-                Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + currentPosition + ", totalDuration: " + currentDuration);
-                stateListener.onStateUpdate(isPlaying, currentPosition, currentDuration);
-                // update current position
-                if (musicList.size() > 0) {
-                    stateListener.onCurrentMusic(currentIndex);
-                } else {
-                    stateListener.onCurrentMusic(-1);
-                }
-
-            }
-            if (isPlaying)
-                mWorkerHandler.postDelayed(this, UI_FRESH_INTERVAL);
-        }
-    };
-
-    private void registerHeadsetReceiver() {
-        headSetReceiver = new HeadSetReceiver(this);
-        IntentFilter filter = new IntentFilter();
-
-        //有线耳机
-        filter.addAction(Intent.ACTION_HEADSET_PLUG);
-        //监听蓝牙耳机
-        filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
-
-        registerReceiver(headSetReceiver, filter);
-    }
-
-    public void setHeadSetStatus(int status) {
-        SpUtil.put(this, Constants.SP_KEY_HEADSET_STATUS, status);
-    }
-
-    public int getHeadSetStatus() {
-        return (int) SpUtil.get(this, Constants.SP_KEY_HEADSET_STATUS, 0);
-    }
 
     public interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);

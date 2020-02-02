@@ -2,7 +2,6 @@ package com.braincs.attrsc.musicplayer.presenter;
 
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.Notification;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,8 +16,6 @@ import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
 import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
-import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
-import com.braincs.attrsc.musicplayer.view.NotificationView;
 
 import java.io.File;
 import java.util.Timer;
@@ -31,7 +28,6 @@ import java.util.TimerTask;
 public class MusicPlayerPresenter implements BasePresenter {
     private static final String TAG = MusicPlayerPresenter.class.getSimpleName();
     private MusicPlayerActivityView mView;
-    private MusicPlayerNotificationView mNotificationView;
     private MusicPlayerService mService;
     private MusicPlayerModel mModel;
     private boolean isBound = false;
@@ -43,7 +39,6 @@ public class MusicPlayerPresenter implements BasePresenter {
     public MusicPlayerPresenter(MusicPlayerActivityView mView, MusicPlayerModel model) {
         this.mView = mView;
         this.mModel = model;
-        this.mNotificationView = new NotificationView(mView.getContext());
         timer = new Timer("stopTimer");
 
     }
@@ -62,20 +57,6 @@ public class MusicPlayerPresenter implements BasePresenter {
         mView.updateProgress(mModel.getCurrentPosition(), mModel.getTotalDuration());
         mView.setItems(mModel);
 
-        freshNotificationUI();
-    }
-
-    private void freshNotificationUI() {
-        if (mModel.getMusicList().size() == 0) {
-            mNotificationView.setMusicBarName("");
-        } else {
-            mNotificationView.setMusicBarName(new File(mModel.getMusicList().get(mModel.getCurrentIndex())).getName());
-        }
-        if (mModel.getState() == MusicPlayerModel.STATE_PLAYING) {
-            mNotificationView.setMusicBtnPause();
-        } else {
-            mNotificationView.setMusicBtnPlay();
-        }
     }
 
 
@@ -92,9 +73,6 @@ public class MusicPlayerPresenter implements BasePresenter {
         }
     }
 
-    public void bindForegroundService(int id, Notification notification) {
-        mService.startForeground(id, notification);
-    }
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -104,9 +82,6 @@ public class MusicPlayerPresenter implements BasePresenter {
                 mService = ((MusicPlayerService.PlayerBinder) service).getService();
                 mService.setStateListener(mStateListener);
                 mService.setPresenter(MusicPlayerPresenter.this);
-
-                Notification notification = mNotificationView.displayNotification();
-                bindForegroundService(NotificationView.NOTIFICATION_ID, notification);
 
                 isBound = true;
                 // update ui
@@ -217,7 +192,7 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     }
 
-    public void scrollToTop(boolean isSmooth){
+    public void scrollToTop(boolean isSmooth) {
         mView.scrollTo(0, isSmooth);
     }
 
@@ -247,11 +222,9 @@ public class MusicPlayerPresenter implements BasePresenter {
         if (isPlaying) {
             mModel.setState(MusicPlayerModel.STATE_PLAYING);
             mView.setMusicBtnPause();
-            mNotificationView.setMusicBtnPause();
         } else {
             mModel.setState(MusicPlayerModel.STATE_PAUSE);
             mView.setMusicBtnPlay();
-            mNotificationView.setMusicBtnPlay();
         }
     }
 
@@ -280,7 +253,6 @@ public class MusicPlayerPresenter implements BasePresenter {
             mModel.setCurrentIndex(index);
             File file = new File(mModel.getMusicList().get(index));
             mView.setMusicBarName(file.getName());
-            mNotificationView.setMusicBarName(file.getName());
         }
     };
 

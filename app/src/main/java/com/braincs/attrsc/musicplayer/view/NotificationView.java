@@ -78,11 +78,6 @@ public class NotificationView implements MusicPlayerNotificationView {
     }
 
     @Override
-    public void updateProgress(int progress, int total) {
-
-    }
-
-    @Override
     public void setMusicBtnPlay() {
         setControlBtnPlaying(false);
     }
@@ -97,11 +92,6 @@ public class NotificationView implements MusicPlayerNotificationView {
         // update notification bar
         notificationView.setTextViewText(R.id.tv_not_music_name, name);
         postInvalidate();
-    }
-
-    @Override
-    public void setItems(MusicPlayerModel model) {
-
     }
 
     @Override

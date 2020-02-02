@@ -10,6 +10,10 @@ import com.braincs.attrsc.musicplayer.MusicPlayerModel;
  */
 public interface MusicPlayerActivityView extends MusicPlayerView {
 
+    void setItems(MusicPlayerModel model);
+
+    void updateProgress(int progress, int total);
+
     void setFreshing(boolean isFreshing);
 
     void scrollTo(int position, boolean isSmooth);

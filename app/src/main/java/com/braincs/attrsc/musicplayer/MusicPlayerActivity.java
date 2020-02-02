@@ -85,8 +85,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
         context = this; // theme 切换必须使用Activity的上下文
+        updateCurrentTheme();
+        setContentView(R.layout.activity_main);
 
         getPermissions();
 

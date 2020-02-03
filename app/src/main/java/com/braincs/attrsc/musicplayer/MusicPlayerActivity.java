@@ -386,8 +386,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
                 pbMusic.setMax(total);
                 pbMusic.setProgress(progress);
                 pbMusic.refreshDrawableState();
-                tvTime.setText(TimeUtil.int2TimeStr(progress));
-                String dur = TimeUtil.int2TimeStr(total);
+                tvTime.setText(TimeUtil.milliSec2TimeStr(progress));
+                String dur = TimeUtil.milliSec2TimeStr(total);
                 tvDuration.setText(dur);
             }
         });

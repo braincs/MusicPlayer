@@ -254,6 +254,11 @@ public class MusicPlayerPresenter implements BasePresenter {
             File file = new File(mModel.getMusicList().get(index));
             mView.setMusicBarName(file.getName());
         }
+
+        @Override
+        public void onRemainTime(int milliseconds) {
+            mView.updateTimerLeft(TimeUtil.milliSec2TimeStr(milliseconds));
+        }
     };
 
     public boolean isBound() {
@@ -272,29 +277,7 @@ public class MusicPlayerPresenter implements BasePresenter {
     }
 
     public void stopAndFinish(int min) {
-        timer.cancel();
-        timer = new Timer("stopTimer");
-        final long[] remainTime = {min * 60 * 1000};
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                pause();
-                unBindService();
-                ((Activity) mView.getContext()).finish();
-            }
-        }, remainTime[0]);
-
-        mService.queueEvent(new Runnable() {
-            @Override
-            public void run() {
-                remainTime[0] -= 1000;
-                if (remainTime[0] < 0) return;
-                Log.d(TAG, "remain time = " + remainTime[0]);
-                //update ui timer left
-                mView.updateTimerLeft(TimeUtil.int2TimeStr((int) remainTime[0]));
-                mService.queueEvent(this, 1000);
-            }
-        }, 1000);
+        mService.countDownStop(min);
     }
 
     public void swapTheme() {

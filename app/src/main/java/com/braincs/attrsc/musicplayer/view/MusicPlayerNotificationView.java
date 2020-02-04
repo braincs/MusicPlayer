@@ -11,4 +11,6 @@ import com.braincs.attrsc.musicplayer.MusicPlayerModel;
  */
 public interface MusicPlayerNotificationView extends MusicPlayerView {
     Notification displayNotification();
+
+    void cancel();
 }

@@ -26,6 +26,7 @@ import com.braincs.attrsc.musicplayer.presenter.BasePresenter;
 import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
 import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
+import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
 import com.braincs.attrsc.musicplayer.view.NotificationView;
 
 import java.io.File;
@@ -51,6 +52,7 @@ public class MusicPlayerService extends Service {
     private int currentPosition = 0;
     private int currentDuration = 0;
     private MServiceStateListener stateListener;
+    private StopTimerListener timerListener;
     private HandlerThread mHandlerThread;
     private Handler mWorkerHandler;
     private boolean isPlaying = false;
@@ -58,7 +60,8 @@ public class MusicPlayerService extends Service {
     private BasePresenter mPresenter;
     private HeadSetReceiver headSetReceiver;
     private boolean isViewVisible;
-    private NotificationView mNotificationView;
+    private MusicPlayerNotificationView mNotificationView;
+    private int remainMilliSeconds = 0;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
     public static class MMediaButtonReceiver extends BroadcastReceiver {
@@ -155,11 +158,15 @@ public class MusicPlayerService extends Service {
 
         pause();
 
+        // close notification
+        mNotificationView.cancel();
+
         // unregister receiver
-        unregisterReceiver(headSetReceiver);
+        unregisterHeadsetReceiver();
 
         if (mPresenter != null) {
             mPresenter.onStop();
+            mPresenter.destroy();
         }
         //Give up the audio focus.
         audioManager.abandonAudioFocus(focusChangeListener);
@@ -277,23 +284,6 @@ public class MusicPlayerService extends Service {
     //endregion
 
 
-    @Deprecated
-    public int play(String mp3Path) {
-        try {
-            // need to reset before setDataSource, otherwise IllegalStateException
-            mediaPlayer.reset();
-            mediaPlayer.setDataSource(mp3Path);
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            int duration = mediaPlayer.getDuration();
-            Log.d(TAG, "duration :" + duration);
-            return duration;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return -1;
-    }
-
     private boolean updateDataSource(String path) {
         mediaPlayer.reset();
         try {
@@ -304,6 +294,22 @@ public class MusicPlayerService extends Service {
             return false;
         }
     }
+
+
+    /**
+     * countDownStop: count down to stop service
+     * @param remainMins : remain time to stop
+     *                   if remainMins > 0 reset countdown timer
+     *                   else cancel old countdown timer
+     */
+    public void countDownStop(int remainMins) {
+        mWorkerHandler.removeCallbacks(countDownRunnable);
+        if (remainMins > 0) {
+            remainMilliSeconds = remainMins * 60 * 1000;
+            queueEvent(countDownRunnable, 1000);
+        }
+    }
+
 
     private void startPlayerFreshUITask() {
         stopFreshUI();
@@ -341,6 +347,25 @@ public class MusicPlayerService extends Service {
         return mediaPlayer.getDuration();
     }
 
+
+    @Deprecated
+    public int play(String mp3Path) {
+        try {
+            // need to reset before setDataSource, otherwise IllegalStateException
+            mediaPlayer.reset();
+            mediaPlayer.setDataSource(mp3Path);
+            mediaPlayer.prepare();
+            mediaPlayer.start();
+            int duration = mediaPlayer.getDuration();
+            Log.d(TAG, "duration :" + duration);
+            return duration;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+
     public void play(MusicPlayerModel model) {
         currentIndex = model.getCurrentIndex();
         currentPosition = model.getCurrentPosition();
@@ -356,9 +381,6 @@ public class MusicPlayerService extends Service {
         playList(musicList, currentIndex, currentPosition);
     }
 
-    public void setPresenter(BasePresenter presenter) {
-        this.mPresenter = presenter;
-    }
 
     public void pause() {
         if (isPlaying) {
@@ -374,9 +396,28 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    public void queueEvent(Runnable runnable, long delayed) {
-        mWorkerHandler.postDelayed(runnable, delayed);
+
+    public void seek(int pos) {
+        currentPosition = Math.min(pos, mediaPlayer.getDuration());
+
+        // when paused, seek to other position
+        cacheCurrentState();
+
+        mediaPlayer.seekTo(pos);
     }
+
+    public void setStateListener(MServiceStateListener stateListener) {
+        this.stateListener = stateListener;
+    }
+
+    public void setTimerListener(StopTimerListener timerListener) {
+        this.timerListener = timerListener;
+    }
+
+    public void setPresenter(BasePresenter presenter) {
+        this.mPresenter = presenter;
+    }
+
 
     public void updateMusicList(List<String> list) {
         musicList = list;
@@ -437,53 +478,69 @@ public class MusicPlayerService extends Service {
     }
 
 
-    public void setStateListener(MServiceStateListener stateListener) {
-        this.stateListener = stateListener;
-    }
-
-    public void seek(int pos) {
-        pos = Math.min(pos, mediaPlayer.getDuration());
-        mediaPlayer.seekTo(pos);
-    }
-
     private void startFreshUI() {
         if (mWorkerHandler != null && isViewVisible)
-            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+            mWorkerHandler.postDelayed(PlayerStateUpdateTask, UI_FRESH_INTERVAL);
     }
 
     private void stopFreshUI() {
         if (mWorkerHandler != null) {
-            Log.d(TAG, "--removeCallbacksAndMessages--");
-            mWorkerHandler.removeCallbacks(UIFreshRunnable);
-            mWorkerHandler.removeCallbacksAndMessages(null);
+            Log.d(TAG, "--removeCallbacks--");
+            mWorkerHandler.removeCallbacks(PlayerStateUpdateTask);
         }
     }
 
-    private Runnable UIFreshRunnable = new Runnable() {
+    //region Runnable
+    /**
+     * PlayerStateUpdateTask
+     */
+    private Runnable PlayerStateUpdateTask = new Runnable() {
         @Override
         public void run() {
             if (null != stateListener) {
-                // pause 时，position = 0
-//                if (isPlaying)
+                // update music progress and duration
                 currentPosition = getCurrentPosition();
                 Log.d(TAG, "isPlaying: " + isPlaying + ", currentPosition: " + currentPosition + ", totalDuration: " + currentDuration);
                 stateListener.onStateUpdate(isPlaying, currentPosition, currentDuration);
-                // update current position
+
+                // update current music name
                 if (musicList.size() > 0) {
                     stateListener.onCurrentMusic(currentIndex);
 
-                    //set notification music name
+                    //update notification music name
                     mNotificationView.setMusicBarName(new File(musicList.get(currentIndex)).getName());
 
                 } else {
                     stateListener.onCurrentMusic(-1);
                 }
-
             }
             if (isPlaying)
                 mWorkerHandler.postDelayed(this, UI_FRESH_INTERVAL);
         }
     };
+
+
+    /**
+     * countDownRunnable
+     */
+    private Runnable countDownRunnable = new Runnable() {
+        @Override
+        public void run() {
+            remainMilliSeconds -= 1000;
+            if (remainMilliSeconds <= 0) {
+                // destroy
+                onDestroy();
+                return;
+            }
+
+            //update remain time
+            if (timerListener != null) {
+                timerListener.onRemainTime(remainMilliSeconds);
+            }
+            queueEvent(this, 1000);
+        }
+    };
+    //endregion
 
     //region Headset
     private void registerHeadsetReceiver() {
@@ -496,6 +553,14 @@ public class MusicPlayerService extends Service {
         filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
 
         registerReceiver(headSetReceiver, filter);
+    }
+
+    private void unregisterHeadsetReceiver() {
+        try {
+            unregisterReceiver(headSetReceiver);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setHeadSetStatus(int status) {
@@ -614,11 +679,20 @@ public class MusicPlayerService extends Service {
         // resetState mContext
         this.mContext = null;
     }
+
+    public void queueEvent(Runnable runnable, long delayed) {
+        mWorkerHandler.postDelayed(runnable, delayed);
+    }
     //endregion
 
     public interface MServiceStateListener {
         void onStateUpdate(boolean isPlaying, int currentPosition, int totalDuration);
 
         void onCurrentMusic(int index);
+
+    }
+
+    public interface StopTimerListener {
+        void onRemainTime(int milliseconds);
     }
 }

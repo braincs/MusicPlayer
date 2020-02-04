@@ -398,7 +398,11 @@ public class MusicPlayerService extends Service {
 
 
     public void seek(int pos) {
-        pos = Math.min(pos, mediaPlayer.getDuration());
+        currentPosition = Math.min(pos, mediaPlayer.getDuration());
+
+        // when paused, seek to other position
+        cacheCurrentState();
+
         mediaPlayer.seekTo(pos);
     }
 

@@ -161,7 +161,7 @@ public class MusicPlayerService extends Service {
         mNotificationView.cancel();
 
         // unregister receiver
-        unregisterReceiver(headSetReceiver);
+        unregisterHeadsetReceiver();
 
         if (mPresenter != null) {
             mPresenter.onStop();
@@ -544,6 +544,13 @@ public class MusicPlayerService extends Service {
         filter.addAction(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
 
         registerReceiver(headSetReceiver, filter);
+    }
+    private void unregisterHeadsetReceiver(){
+        try{
+            unregisterReceiver(headSetReceiver);
+        }catch (RuntimeException e){
+            e.printStackTrace();
+        }
     }
 
     public void setHeadSetStatus(int status) {

@@ -102,6 +102,11 @@ public class NotificationView implements MusicPlayerNotificationView {
             return startMyOwnForeground();
     }
 
+    @Override
+    public void cancel() {
+        notificationManager.cancel(NOTIFICATION_ID);
+    }
+
     private Notification startMyOwnForeground() {
         notificationBuilder = new NotificationCompat.Builder(context);
         Notification notification = notificationBuilder.setOngoing(true)

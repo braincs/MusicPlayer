@@ -26,6 +26,7 @@ import com.braincs.attrsc.musicplayer.presenter.BasePresenter;
 import com.braincs.attrsc.musicplayer.receiver.HeadSetReceiver;
 import com.braincs.attrsc.musicplayer.utils.Constants;
 import com.braincs.attrsc.musicplayer.utils.SpUtil;
+import com.braincs.attrsc.musicplayer.view.MusicPlayerNotificationView;
 import com.braincs.attrsc.musicplayer.view.NotificationView;
 
 import java.io.File;
@@ -58,7 +59,7 @@ public class MusicPlayerService extends Service {
     private BasePresenter mPresenter;
     private HeadSetReceiver headSetReceiver;
     private boolean isViewVisible;
-    private NotificationView mNotificationView;
+    private MusicPlayerNotificationView mNotificationView;
     private int remainMilliSeconds = 0;
 
     //API21之前: 实现了一个 MediaButtonReceiver 获取监听
@@ -156,11 +157,15 @@ public class MusicPlayerService extends Service {
 
         pause();
 
+        // close notification
+        mNotificationView.cancel();
+
         // unregister receiver
         unregisterReceiver(headSetReceiver);
 
         if (mPresenter != null) {
             mPresenter.onStop();
+            mPresenter.destroy();
         }
         //Give up the audio focus.
         audioManager.abandonAudioFocus(focusChangeListener);
@@ -290,11 +295,18 @@ public class MusicPlayerService extends Service {
     }
 
 
+    /**
+     * countDownStop: count down to stop service
+     * @param remainMins : remain time to stop
+     *                   if remainMins > 0 reset countdown timer
+     *                   else cancel old countdown timer
+     */
     public void countDownStop(int remainMins) {
         mWorkerHandler.removeCallbacks(countDownRunnable);
-        remainMilliSeconds = remainMins * 60 * 1000;
-        queueEvent(countDownRunnable, 1000);
-
+        if (remainMins > 0) {
+            remainMilliSeconds = remainMins * 60 * 1000;
+            queueEvent(countDownRunnable, 1000);
+        }
     }
 
 

@@ -192,6 +192,16 @@ public class MusicPlayerPresenter implements BasePresenter {
 
     }
 
+    public void destroy(){
+        // destroy activity and view
+        if (null != mView && null != mView.getContext()) {
+            mView.getContext().stopService(new Intent(mView.getContext(), MusicPlayerService.class));
+            ActivityManager am = (ActivityManager) mView.getContext().getSystemService(Context.ACTIVITY_SERVICE);
+            am.killBackgroundProcesses(mView.getContext().getPackageName());
+            System.exit(0);
+        }
+    }
+
     public void scrollToTop(boolean isSmooth) {
         mView.scrollTo(0, isSmooth);
     }

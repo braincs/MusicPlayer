@@ -198,7 +198,7 @@ public class MusicPlayerPresenter implements BasePresenter {
             mView.getContext().stopService(new Intent(mView.getContext(), MusicPlayerService.class));
             ActivityManager am = (ActivityManager) mView.getContext().getSystemService(Context.ACTIVITY_SERVICE);
             am.killBackgroundProcesses(mView.getContext().getPackageName());
-            System.exit(0);
+            ((Activity)mView.getContext()).finishAndRemoveTask();
         }
     }
 

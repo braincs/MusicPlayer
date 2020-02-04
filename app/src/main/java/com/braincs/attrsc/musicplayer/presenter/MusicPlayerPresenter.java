@@ -81,6 +81,7 @@ public class MusicPlayerPresenter implements BasePresenter {
             if (service != null) {
                 mService = ((MusicPlayerService.PlayerBinder) service).getService();
                 mService.setStateListener(mStateListener);
+                mService.setTimerListener(mStopTimerListener);
                 mService.setPresenter(MusicPlayerPresenter.this);
 
                 isBound = true;
@@ -94,6 +95,7 @@ public class MusicPlayerPresenter implements BasePresenter {
             isBound = false;
             mService.setPresenter(null);
             mService.setStateListener(null);
+            mService.setTimerListener(null);
         }
     };
 
@@ -178,7 +180,7 @@ public class MusicPlayerPresenter implements BasePresenter {
         pause();
         if (null != mService && isBound) {
             mService.setStateListener(null);
-
+            mService.setTimerListener(null);
         }
         onStop();
 
@@ -265,6 +267,9 @@ public class MusicPlayerPresenter implements BasePresenter {
             mView.setMusicBarName(file.getName());
         }
 
+    };
+
+    private MusicPlayerService.StopTimerListener mStopTimerListener = new MusicPlayerService.StopTimerListener() {
         @Override
         public void onRemainTime(int milliseconds) {
             mView.updateTimerLeft(TimeUtil.milliSec2TimeStr(milliseconds));

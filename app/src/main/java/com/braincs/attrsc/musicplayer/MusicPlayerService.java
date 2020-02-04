@@ -52,6 +52,7 @@ public class MusicPlayerService extends Service {
     private int currentPosition = 0;
     private int currentDuration = 0;
     private MServiceStateListener stateListener;
+    private StopTimerListener timerListener;
     private HandlerThread mHandlerThread;
     private Handler mWorkerHandler;
     private boolean isPlaying = false;
@@ -405,6 +406,10 @@ public class MusicPlayerService extends Service {
         this.stateListener = stateListener;
     }
 
+    public void setTimerListener(StopTimerListener timerListener) {
+        this.timerListener = timerListener;
+    }
+
     public void setPresenter(BasePresenter presenter) {
         this.mPresenter = presenter;
     }
@@ -471,21 +476,21 @@ public class MusicPlayerService extends Service {
 
     private void startFreshUI() {
         if (mWorkerHandler != null && isViewVisible)
-            mWorkerHandler.postDelayed(UIFreshRunnable, UI_FRESH_INTERVAL);
+            mWorkerHandler.postDelayed(PlayerStateUpdateTask, UI_FRESH_INTERVAL);
     }
 
     private void stopFreshUI() {
         if (mWorkerHandler != null) {
             Log.d(TAG, "--removeCallbacks--");
-            mWorkerHandler.removeCallbacks(UIFreshRunnable);
+            mWorkerHandler.removeCallbacks(PlayerStateUpdateTask);
         }
     }
 
     //region Runnable
     /**
-     * UIFreshRunnable
+     * PlayerStateUpdateTask
      */
-    private Runnable UIFreshRunnable = new Runnable() {
+    private Runnable PlayerStateUpdateTask = new Runnable() {
         @Override
         public void run() {
             if (null != stateListener) {
@@ -503,11 +508,6 @@ public class MusicPlayerService extends Service {
 
                 } else {
                     stateListener.onCurrentMusic(-1);
-                }
-
-                //update remain time
-                if (remainMilliSeconds > 0) {
-                    stateListener.onRemainTime(remainMilliSeconds);
                 }
             }
             if (isPlaying)
@@ -528,6 +528,11 @@ public class MusicPlayerService extends Service {
                 onDestroy();
                 return;
             }
+
+            //update remain time
+            if (timerListener != null) {
+                timerListener.onRemainTime(remainMilliSeconds);
+            }
             queueEvent(this, 1000);
         }
     };
@@ -545,10 +550,11 @@ public class MusicPlayerService extends Service {
 
         registerReceiver(headSetReceiver, filter);
     }
-    private void unregisterHeadsetReceiver(){
-        try{
+
+    private void unregisterHeadsetReceiver() {
+        try {
             unregisterReceiver(headSetReceiver);
-        }catch (RuntimeException e){
+        } catch (RuntimeException e) {
             e.printStackTrace();
         }
     }
@@ -680,6 +686,9 @@ public class MusicPlayerService extends Service {
 
         void onCurrentMusic(int index);
 
+    }
+
+    public interface StopTimerListener {
         void onRemainTime(int milliseconds);
     }
 }

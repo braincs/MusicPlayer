@@ -425,9 +425,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     @Override
-    public void setItems(MusicPlayerModel model) {
-        modelAdapter.updateModel(model);
-        modelAdapter.notifyDataSetChanged(); //fresh dataSet
+    public void setItems(final MusicPlayerModel model) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                modelAdapter.updateModel(model);
+                modelAdapter.notifyDataSetChanged(); //fresh dataSet
+            }
+        });
     }
 
     @Override

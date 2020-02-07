@@ -6,6 +6,8 @@
     <attr name="custom_attr_app_title_layout_bg" format="color|reference" />
     <!-- 控制app侧边导航栏背景色 format:颜色值、资源引用 -->
     <attr name="custom_attr_app_navigation_layout_bg" format="color|reference" />
+    <!-- 控制app侧边导航栏背景色 format:颜色值、资源引用 -->
+    <attr name="custom_attr_app_navigation_head_view_bg" format="color|reference" />
     <!-- 控制app内容区背景色 format:颜色值、资源引用 -->
     <attr name="custom_attr_app_content_layout_bg" format="color|reference" />
     <!-- 控制app内容区分割线颜色 format:颜色值、资源引用 -->
@@ -42,4 +44,6 @@
     <attr name="custom_attr_remark_text_color" format="color|reference" />
 
     <attr name="custom_attr_music_bar_text_color" format="color|reference" />
+
+    <attr name="custom_color_head_view_title_text_color" format="color|reference" />
 </resources>

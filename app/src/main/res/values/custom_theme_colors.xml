@@ -14,6 +14,8 @@
     <color name="custom_color_app_title_layout_bg_night">#FF1D1D1D</color>      <!-- app标题栏背景色 -->
     <color name="custom_color_app_navigation_layout_bg_day">#FFEDEFF2</color>      <!-- app标题栏背景色 -->
     <color name="custom_color_app_navigation_layout_bg_night">#FF2F3A4C</color>      <!-- app标题栏背景色 -->
+    <color name="custom_color_app_navigation_head_view_bg_day">#FF708090</color>      <!-- app标题栏背景色 -->
+    <color name="custom_color_app_navigation_head_view_bg_night">#ff2f4f4f</color>      <!-- header标题栏背景色 -->
     <color name="custom_color_app_content_layout_bg_day">#FFFFFFFF</color>      <!-- app内容区背景色 -->
     <color name="custom_color_app_content_layout_bg_night">#FF1D1D1D</color>      <!-- app内容区背景色 -->
     <color name="custom_color_app_content_layout_div_color_day">#FFF2F2F2</color>      <!-- app内容区分割线颜色 -->
@@ -47,4 +49,7 @@
 
     <color name="custom_color_music_bar_text_color_day">#FFE5E6E8</color>      <!-- 播放器栏文本字体颜色 -->
     <color name="custom_color_music_bar_text_color_night">#FF2B2B2B</color>      <!-- 播放器栏文本字体颜色  -->
+    <color name="custom_color_head_view_title_text_color_day">#FFE5E6E8</color>      <!-- 播放器栏文本字体颜色 -->
+    <color name="custom_color_head_view_title_text_color_night">#FF2B2B2B</color>      <!-- 播放器栏文本字体颜色  -->
+
 </resources>

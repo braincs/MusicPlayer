@@ -17,6 +17,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -24,6 +25,7 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -59,6 +61,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     private ImageButton btnPlayerForward;
     private ImageButton btnPlayerNext;
     private Toolbar toolbar;
+    private RelativeLayout headView;
+    private TextView headviewTitle;
+    private ImageView ivAvatar;
 
 //    private PendingIntent contentIntent;
 //    private RemoteViews notificationView;
@@ -171,6 +176,12 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         navigationView = findViewById(R.id.navigation_view);
         navigationView.getHeaderView(0).setOnClickListener(drawerHeaderViewOnClickListener);
         navigationView.setNavigationItemSelectedListener(navigationItemSelectedListener);
+
+        //avatar view
+        View parent = navigationView.getHeaderView(0);
+        headView = parent.findViewById(R.id.ll_headview);
+        headviewTitle = parent.findViewById(R.id.tv_avatar_title);
+        ivAvatar = parent.findViewById(R.id.iv_avatar);
     }
 
     private SwipeRefreshLayout.OnRefreshListener pullDownFreshListener = new SwipeRefreshLayout.OnRefreshListener() {
@@ -425,9 +436,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
     }
 
     @Override
-    public void setItems(MusicPlayerModel model) {
-        modelAdapter.updateModel(model);
-        modelAdapter.notifyDataSetChanged(); //fresh dataSet
+    public void setItems(final MusicPlayerModel model) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                modelAdapter.updateModel(model);
+                modelAdapter.notifyDataSetChanged(); //fresh dataSet
+            }
+        });
     }
 
     @Override
@@ -499,6 +515,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         helper.setBackgroundResourceByAttr(appLayout, R.attr.custom_attr_app_bg);
         helper.setBackgroundResourceByAttr(drawerLayout, R.attr.custom_attr_app_bg);
         helper.setBackgroundResourceByAttr(navigationView, R.attr.custom_attr_app_navigation_layout_bg);
+        helper.setBackgroundResourceByAttr(headView, R.attr.custom_attr_app_navigation_head_view_bg);
+        helper.setBackgroundResourceByAttr(ivAvatar, R.attr.custom_attr_app_navigation_layout_bg);
 //        helper.setBackgroundResourceByAttr(mStatusBar, R.attr.custom_attr_app_title_layout_bg);
 //        helper.setBackgroundResourceByAttr(mTitleLayout, R.attr.custom_attr_app_title_layout_bg);
 //
@@ -512,8 +530,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements MusicPlaye
         helper.setAlphaByAttr(btnPlayerForward, R.attr.custom_attr_user_photo_alpha);
         helper.setAlphaByAttr(btnPlayerNext, R.attr.custom_attr_user_photo_alpha);
         helper.setAlphaByAttr(btnPlayerPrevious, R.attr.custom_attr_user_photo_alpha);
+        helper.setAlphaByAttr(ivAvatar, R.attr.custom_attr_user_photo_alpha);
 //
         helper.setTextColorByAttr(tvMusicName, R.attr.custom_attr_music_bar_text_color);
+        helper.setTextColorByAttr(headviewTitle, R.attr.custom_color_head_view_title_text_color);
 //        helper.setTextColorByAttr(mRemark, R.attr.custom_attr_remark_text_color);
 //
         //update menu theme button

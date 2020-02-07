@@ -18,8 +18,6 @@ import com.braincs.attrsc.musicplayer.utils.TimeUtil;
 import com.braincs.attrsc.musicplayer.view.MusicPlayerActivityView;
 
 import java.io.File;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by Shuai
@@ -33,13 +31,11 @@ public class MusicPlayerPresenter implements BasePresenter {
     private boolean isBound = false;
     private volatile boolean isSeekBarFromUser;
     private Intent serviceIntent;
-    private Timer timer;
 
 
     public MusicPlayerPresenter(MusicPlayerActivityView mView, MusicPlayerModel model) {
         this.mView = mView;
         this.mModel = model;
-        timer = new Timer("stopTimer");
 
     }
 
@@ -265,6 +261,8 @@ public class MusicPlayerPresenter implements BasePresenter {
             mModel.setCurrentIndex(index);
             File file = new File(mModel.getMusicList().get(index));
             mView.setMusicBarName(file.getName());
+            // 列表当前播放
+            mView.setItems(mModel);
         }
 
     };

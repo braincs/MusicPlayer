@@ -3,14 +3,14 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="?attr/custom_attr_app_bg"
+    android:background="?attr/custom_attr_app_navigation_head_view_bg"
     android:id="@+id/ll_headview">
 
     <android.support.v7.widget.CardView
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:elevation="12dp"
-        android:id="@+id/cv_avatar"
+        android:id="@+id/cv_avatar_circle"
         app:cardCornerRadius="40dp"
         android:innerRadius="0dp"
         android:layout_margin="@dimen/pad_mid"
@@ -20,21 +20,23 @@
             android:padding="@dimen/pad_large"
             android:layout_height="80dp"
             android:layout_width="match_parent"
-            android:id="@+id/avatar"
+            android:id="@+id/iv_avatar"
             android:src="@drawable/player_icon"
+            android:background="?attr/custom_attr_app_navigation_layout_bg"
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true">
         </ImageView>
     </android.support.v7.widget.CardView>
 
     <TextView
+        android:id="@+id/tv_avatar_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/app_name"
-        android:textColor="@android:color/white"
+        android:textColor="?attr/custom_color_head_view_title_text_color"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginStart="@dimen/pad_mid"
-        android:layout_below="@+id/cv_avatar"/>
+        android:layout_below="@+id/cv_avatar_circle"/>
 
 </RelativeLayout>
